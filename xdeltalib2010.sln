@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xdeltalib", "xdeltalib2010.vcxproj", "{C24CF4EF-1120-40F8-B636-737D4CA6F455}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testserver", "testserver\testserver.vcxproj", "{B45FE13A-EF31-4B10-945C-62DBA3FB0390}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient\testclient.vcxproj", "{8E5B6541-FC50-419C-8EC7-6C26823AF702}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C24CF4EF-1120-40F8-B636-737D4CA6F455}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C24CF4EF-1120-40F8-B636-737D4CA6F455}.Debug|Win32.Build.0 = Debug|Win32
+		{C24CF4EF-1120-40F8-B636-737D4CA6F455}.Release|Win32.ActiveCfg = Release|Win32
+		{C24CF4EF-1120-40F8-B636-737D4CA6F455}.Release|Win32.Build.0 = Release|Win32
+		{B45FE13A-EF31-4B10-945C-62DBA3FB0390}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B45FE13A-EF31-4B10-945C-62DBA3FB0390}.Debug|Win32.Build.0 = Debug|Win32
+		{B45FE13A-EF31-4B10-945C-62DBA3FB0390}.Release|Win32.ActiveCfg = Release|Win32
+		{B45FE13A-EF31-4B10-945C-62DBA3FB0390}.Release|Win32.Build.0 = Release|Win32
+		{8E5B6541-FC50-419C-8EC7-6C26823AF702}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8E5B6541-FC50-419C-8EC7-6C26823AF702}.Debug|Win32.Build.0 = Debug|Win32
+		{8E5B6541-FC50-419C-8EC7-6C26823AF702}.Release|Win32.ActiveCfg = Release|Win32
+		{8E5B6541-FC50-419C-8EC7-6C26823AF702}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
