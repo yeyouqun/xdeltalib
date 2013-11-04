@@ -37,7 +37,7 @@ endif
 CXX      := g++
 
 
-all: xdelta testserver testclient
+all: xdelta test-server test-client
 
 digest.o:digest.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
@@ -89,13 +89,13 @@ xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
 			 PassiveSocket.o xdelta_server.o xdelta_client.o stream.o
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
-testserver:xdelta testserver.cpp
+test-server:xdelta testserver.cpp
 	$(CXX) -Wl,-rpath,. -o $@ testserver.cpp $(EXTRA_CFLAGS) -pthread $(TEST_EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta -fPIC -fpic -DPIC -Wl,-rpath,/usr/local/lib64
                 
-testclient:xdelta testclient.cpp
+test-client:xdelta testclient.cpp
 	$(CXX) -Wl,-rpath,. -o $@ testclient.cpp $(EXTRA_CFLAGS) -pthread $(TEST_EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta -fPIC -fpic -DPIC -Wl,-rpath,/usr/local/lib64
                 
 clean:
-	rm -f *.o libxdelta.so* testserver testclient
+	rm -f *.o libxdelta.so* test-server test-client
