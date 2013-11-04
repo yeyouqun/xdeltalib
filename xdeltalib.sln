@@ -3,15 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xdeltalib", "xdeltalib.vcproj", "{217362D9-69DA-41FB-9465-E2AD66A483C9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testserver", "testserver.vcproj", "{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{217362D9-69DA-41FB-9465-E2AD66A483C9} = {217362D9-69DA-41FB-9465-E2AD66A483C9}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient\testclient.vcproj", "{A8EE7212-3077-40D0-A45F-DA3106E2E57B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient.vcproj", "{A8EE7212-3077-40D0-A45F-DA3106E2E57B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{217362D9-69DA-41FB-9465-E2AD66A483C9} = {217362D9-69DA-41FB-9465-E2AD66A483C9}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testserver", "testserver\testserver.vcproj", "{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,14 +23,6 @@ Global
 		{217362D9-69DA-41FB-9465-E2AD66A483C9}.Release|Win32.Build.0 = Release|Win32
 		{217362D9-69DA-41FB-9465-E2AD66A483C9}.Release|x64.ActiveCfg = Release|x64
 		{217362D9-69DA-41FB-9465-E2AD66A483C9}.Release|x64.Build.0 = Release|x64
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|Win32.ActiveCfg = Debug|Win32
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|Win32.Build.0 = Debug|Win32
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|x64.ActiveCfg = Debug|x64
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|x64.Build.0 = Debug|x64
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|Win32.ActiveCfg = Release|Win32
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|Win32.Build.0 = Release|Win32
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|x64.ActiveCfg = Release|x64
-		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|x64.Build.0 = Release|x64
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Debug|Win32.Build.0 = Debug|Win32
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Debug|x64.ActiveCfg = Debug|x64
@@ -45,6 +31,14 @@ Global
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Release|Win32.Build.0 = Release|Win32
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Release|x64.ActiveCfg = Release|x64
 		{A8EE7212-3077-40D0-A45F-DA3106E2E57B}.Release|x64.Build.0 = Release|x64
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|Win32.Build.0 = Debug|Win32
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|x64.ActiveCfg = Debug|x64
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Debug|x64.Build.0 = Debug|x64
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|Win32.ActiveCfg = Release|Win32
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|Win32.Build.0 = Release|Win32
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|x64.ActiveCfg = Release|x64
+		{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
