@@ -78,8 +78,8 @@ void split_hole (std::set<hole_t> & holeset, const hole_t & hole)
 }
 
 void multiround_reconstructor::add_block (const target_pos & tpos
-								, uint32_t blk_len
-								, uint64_t s_offset)
+								, const uint32_t blk_len
+								, const uint64_t s_offset)
 {
 	hole_t hole;
 	hole.length = blk_len;
@@ -90,8 +90,8 @@ void multiround_reconstructor::add_block (const target_pos & tpos
 }
 
 void multiround_reconstructor::add_block (const uchar_t * data
-										, uint32_t blk_len
-										, uint64_t filpos)
+										, const uint32_t blk_len
+										, const uint64_t filpos)
 {
 	//
 	// this interface only called on the last round.
@@ -124,12 +124,12 @@ void multiround_hasher_stream::start_hash_stream (const std::string & fname
 	output_->start_hash_stream (reader_.get_fname (), blk_len_);
 }
 
-void multiround_hasher_stream::add_block (uint32_t fhash, const slow_hash & shash)
+void multiround_hasher_stream::add_block (const uint32_t fhash, const slow_hash & shash)
 {
 	hashes_.add_block (fhash, shash);
 }
 
-void multiround_hasher_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], uint64_t filsize)
+void multiround_hasher_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize)
 {
 	char_buffer<uchar_t> buff (XDELTA_BUFFER_LEN);
 	typedef std::set<hole_t>::iterator it_t;
@@ -176,7 +176,7 @@ bool multiround_hasher_stream::end_first_round (const uchar_t file_hash[DIGEST_B
 	return true;
 }
 
-void multiround_hasher_stream::next_round (int32_t blk_len)
+void multiround_hasher_stream::next_round (const int32_t blk_len)
 {
 	output_->next_round (blk_len);
 	hashes_.clear ();
@@ -190,7 +190,7 @@ void multiround_hasher_stream::end_one_round ()
 	hashes_.clear ();
 }
 
-void multiround_hasher_stream::on_error (const std::string & errmsg, int errorno)
+void multiround_hasher_stream::on_error (const std::string & errmsg, const int errorno)
 {
 	output_->on_error (errmsg, errorno);
 }

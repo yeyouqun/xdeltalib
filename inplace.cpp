@@ -114,8 +114,8 @@ void in_place_stream::on_error (const std::string & errmsg, const int errorno)
 }
 
 void in_place_stream::add_block (const target_pos & tpos
-							, uint32_t blk_len
-							, uint64_t s_offset)
+							, const uint32_t blk_len
+							, const uint64_t s_offset)
 {
 	assert (tpos.t_offset == 0);
 	equal_node * p = new equal_node ();
@@ -127,7 +127,7 @@ void in_place_stream::add_block (const target_pos & tpos
 	equal_nodes_.push_back (p);
 }
 
-void in_place_stream::add_block (const uchar_t * data, uint32_t blk_len, uint64_t s_offset)
+void in_place_stream::add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t s_offset)
 {
 	diff_node dn;
 	dn.blength = blk_len;
