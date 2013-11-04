@@ -220,8 +220,8 @@ multiround_tcp_stream::multiround_tcp_stream (CActiveSocket & client
 					, file_operator & fop
 					, xdelta_observer & observer)
 		: tcp_hasher_stream (client, fop, observer)
-		, reconst_ (fop)
 		, _end_first_round (false)
+		, reconst_ (fop)
 {
 	multiround_ = true;
 }
