@@ -47,7 +47,7 @@
 #include "mytypes.h"
 #include "platform.h"
 #include "buffer.h"
-#include "PassiveSocket.h"
+#include "passive_socket.h"
 
 
 namespace xdelta {
@@ -295,21 +295,10 @@ int32_t CPassiveSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
 
     switch(m_nSocketType)
     {
-        case CSimpleSocket::SocketTypeUdp:
-        {
-			if (IsSocketValid() && (bytesToSend > 0) && (pBuf != NULL)) {
-                BytesSent = SENDTO(m_socket, pBuf, bytesToSend, 0, 
-                                      (const sockaddr *)&m_stClientSockaddr, 
-                                      sizeof(m_stClientSockaddr));
-                if (BytesSent == CSimpleSocket::SocketError)
-                {
-                    TranslateSocketError();
-                }
-            }
-            break;
-        }
-        case CSimpleSocket::SocketTypeTcp:
+       case CSimpleSocket::SocketTypeTcp:
            CSimpleSocket::Send(pBuf, bytesToSend);
+           break;
+       case CSimpleSocket::SocketTypeTcp6:
            break;
        default:
            SetSocketError(SocketProtocolError);

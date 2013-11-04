@@ -57,8 +57,8 @@ void reconstructor::start_hash_stream (const std::string & fname
 }
 
 void reconstructor::add_block (const target_pos & tpos
-							, uint32_t blk_len
-							, uint64_t s_offset)
+							, const uint32_t blk_len
+							, const uint64_t s_offset)
 {
 	if (reader_ == 0) {
 		std::string errmsg = fmt_string ("Original file %s not open.", fname_.c_str ());
@@ -99,7 +99,7 @@ void reconstructor::add_block (const target_pos & tpos
 	}
 }
 
-void reconstructor::add_block (const uchar_t * data, uint32_t blk_len, uint64_t s_offset)
+void reconstructor::add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t s_offset)
 {
 	int ret = writer_->write_file (data, blk_len);
 	if (ret < 0) {
@@ -110,7 +110,7 @@ void reconstructor::add_block (const uchar_t * data, uint32_t blk_len, uint64_t 
 	}
 }
 
-void reconstructor::end_hash_stream (uint64_t filsize)
+void reconstructor::end_hash_stream (const uint64_t filsize)
 {
 	if (reader_) {
 		reader_->close_file ();
@@ -128,7 +128,7 @@ void reconstructor::end_hash_stream (uint64_t filsize)
 	ftmpname_.clear ();
 }
 
-void reconstructor::on_error (const std::string & errmsg, int errorno)
+void reconstructor::on_error (const std::string & errmsg, const int errorno)
 {
 	if (errorno != 0 && errorno == ENOENT
 #ifdef _WIN32

@@ -21,10 +21,10 @@
 #endif
 
 #include "mytypes.h"
-#include "Host.h"
+#include "host.h"
 #include "buffer.h"
-#include "SimpleSocket.h"
-#include "PassiveSocket.h"
+#include "simple_socket.h"
+#include "passive_socket.h"
 #include "platform.h"
 #include "rw.h"
 #include "rollsum.h"

@@ -78,7 +78,7 @@
 
 #endif
 
-#include "Host.h"
+#include "host.h"
 
 /// @file
 /// 本文件中的类提供 Socket 基础类声明及接口。
@@ -99,23 +99,11 @@ namespace xdelta {
 ///  -# CPassiveSocket Class
 class DLL_EXPORT CSimpleSocket {
 public:
-    /// Defines the three possible states for shuting down a socket.
-    typedef enum 
-    {
-        Receives = SHUT_RD, ///< Shutdown passive socket.
-        Sends = SHUT_WR,    ///< Shutdown active socket.
-        Both = SHUT_RDWR    ///< Shutdown both active and passive sockets.
-    } CShutdownMode; 
-
     /// Defines the socket types defined by CSimpleSocket class.
     typedef enum  
     {
-        SocketTypeInvalid,   ///< Invalid socket type.
         SocketTypeTcp,       ///< Defines socket as TCP socket.
-        SocketTypeUdp,       ///< Defines socket as UDP socket.
         SocketTypeTcp6,      ///< Defines socket as IPv6 TCP socket.
-        SocketTypeUdp6,      ///< Defines socket as IPv6 UDP socket.
-        SocketTypeRaw        ///< Provides raw network protocol access.
     } CSocketType;
 
     /// Defines all error codes handled by the CSimpleSocket class.
@@ -158,14 +146,6 @@ public:
 	/// Close socket
 	/// @return true if successfully closed otherwise returns false.
 	virtual bool Close(void);
-
-	/// Shutdown shut down socket send and receive operations
-	///	CShutdownMode::Receives - Disables further receive operations.
-	///	CShutdownMode::Sends    - Disables further send operations.
-	///	CShutdownBoth::         - Disables further send and receive operations.
-	/// \param nShutdown specifies the type of shutdown. 
-	/// @return true if successfully shutdown otherwise returns false.
-	virtual bool Shutdown(CShutdownMode nShutdown);
 
     /// Examine the socket descriptor sets currently owned by the instance of
     /// the socket class (the readfds, writefds, and errorfds parameters) to 
@@ -223,64 +203,11 @@ public:
     /// @return true if the socket is non-blocking, else return false.
     bool IsNonblocking(void) { return (m_bIsBlocking == false); };
 
-    /// Controls the actions taken when CSimpleSocket::Close is executed on a 
-    /// socket object that has unsent data.  The default value for this option 
-    /// is \b off.
-    /// - Following are the three possible scenarios.
-    ///  -# \b bEnable is false, CSimpleSocket::Close returns immediately, but 
-    ///  any unset data is transmitted (after CSimpleSocket::Close returns)
-    ///  -# \b bEnable is true and \b nTime is zero, CSimpleSocket::Close return 
-    /// immediately and any unsent data is discarded.
-    ///  -# \b bEnable is true and \b nTime is nonzero, CSimpleSocket::Close does
-    ///  not return until all unsent data is transmitted (or the connection is 
-    ///  Closed by the remote system).
-    /// <br><p>
-    /// \param bEnable true to enable option false to disable option.
-    /// \param nTime time in seconds to linger.
-    /// @return true if option successfully set
-    bool SetOptionLinger(bool bEnable, uint16_t nTime);
-
-    /// Tells the kernel that even if this port is busy (in the TIME_WAIT state),
-    /// go ahead and reuse it anyway.  If it is busy, but with another state, 
-    /// you will still get an address already in use error.
-    /// @return true if option successfully set
-    bool SetOptionReuseAddr();
-
-    /// Enable/disable multicast for a socket.  This options is only valid for
-    /// socket descriptors of type CSimpleSocket::SocketTypeUdp.
-    /// @return true if multicast was enabled or false if socket type is not
-    /// CSimpleSocket::SocketTypeUdp and the error will be set to 
-    /// CSimpleSocket::SocketProtocolError 
-    bool SetMulticast(bool bEnable, uchar_t multicastTTL = 1);
-
-    /// Return true if socket is multicast or false is socket is unicast
-    /// @return true if multicast is enabled
-    bool GetMulticast() { return m_bIsMulticast; };
-
     /// Returns the last error that occured for the instace of the CSimpleSocket
     /// instance.  This method should be called immediately to retrieve the 
     /// error code for the failing mehtod call.
     ///  @return last error that occured.
     CSocketError GetSocketError(void) { return m_socketErrno; };
-
-	/// Return Differentiated Services Code Point (DSCP) value currently set on the socket object.
-    /// @return DSCP for current socket object.
-    /// <br><br> \b NOTE: Windows special notes http://support.microsoft.com/kb/248611.
-	int GetSocketDscp(void);
-
-	/// Set Differentiated Services Code Point (DSCP) for socket object.
-	///  \param nDscp value of TOS setting which will be converted to DSCP
-	///  @return true if DSCP value was properly set
-    /// <br><br> \b NOTE: Windows special notes http://support.microsoft.com/kb/248611.
-	bool SetSocketDscp(int nDscp);
-
-	/// Return socket descriptor
-	///  @return socket descriptor which is a signed 32 bit integer.
-    SOCKET GetSocketDescriptor() { return m_socket; };
-
-	/// Return socket descriptor
-	///  @return socket descriptor which is a signed 32 bit integer.
-    CSocketType GetSocketType() { return m_nSocketType; };
 
     /// Returns clients Internet host address as a string in standard numbers-and-dots notation.
 	///  @return NULL if invalid
@@ -317,7 +244,6 @@ public:
     /// <br><br>\b NOTE: Linux will set the send buffer to twice the value passed.
     ///  @return zero on failure else the number of bytes of the TCP send buffer window size if successful.
     uint16_t SetSendWindowSize(uint16_t nWindowSize) { return SetWindowSize(SO_SNDBUF, nWindowSize); };
-
 protected:
     /// Set the socket to blocking.
     /// @return true if successful set to blocking, else return false;

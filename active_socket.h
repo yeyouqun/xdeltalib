@@ -46,7 +46,7 @@
 /// @file
 /// 本文件中的类提供主动连接端的类声明。
 
-#include "SimpleSocket.h"
+#include "simple_socket.h"
 
 namespace xdelta {
 
@@ -77,16 +77,7 @@ private:
 	/// Utility function used to create a TCP connection, called from Open().
     ///  @return true if successful connection made, otherwise false.
     bool ConnectTCP(const uchar_t *pAddr, int16_t nPort);
-
-	/// Utility function used to create a UDP connection, called from Open().
-    ///  @return true if successful connection made, otherwise false.
-    bool ConnectUDP(const uchar_t *pAddr, int16_t nPort);
-
-	/// Utility function used to create a RAW connection, called from Open().
-    ///  @return true if successful connection made, otherwise false.
-    bool ConnectRAW(const uchar_t *pAddr, int16_t nPort);
-
- private:
+private:
     struct hostent *m_pHE;
 };
 

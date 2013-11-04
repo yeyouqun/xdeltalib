@@ -47,7 +47,7 @@
 #include "mytypes.h"
 #include "platform.h"
 #include "buffer.h"
-#include "SimpleSocket.h"
+#include "simple_socket.h"
 
 namespace xdelta {
 
@@ -55,7 +55,7 @@ CSimpleSocket::CSimpleSocket(CSocketType nType) :
     m_socket(INVALID_SOCKET), 
     m_socketErrno(CSimpleSocket::SocketInvalidSocket), 
     m_nSocketDomain(AF_INET), 
-    m_nSocketType(SocketTypeInvalid),
+    m_nSocketType(SocketTypeTcp),
     m_bIsBlocking(true)
 {
     memset(&m_stLinger, 0, sizeof(struct linger));
@@ -77,37 +77,8 @@ CSimpleSocket::CSimpleSocket(CSocketType nType) :
             m_nSocketType = CSimpleSocket::SocketTypeTcp6;
             break;
         }
-	//----------------------------------------------------------------------
-	// Declare socket type datagram - UDP
-	//----------------------------------------------------------------------
-    case CSimpleSocket::SocketTypeUdp:
-        {
-            m_nSocketDomain = AF_INET;
-            m_nSocketType = CSimpleSocket::SocketTypeUdp;
-            break;
-        }
-    case CSimpleSocket::SocketTypeUdp6:
-        {
-            m_nSocketDomain = AF_INET6;
-            m_nSocketType = CSimpleSocket::SocketTypeUdp6;
-            break;
-        }
-	//----------------------------------------------------------------------
-	// Declare socket type raw Ethernet - Ethernet
-	//----------------------------------------------------------------------
-	case CSimpleSocket::SocketTypeRaw:
-	{
-#ifdef _LINUX
-	    m_nSocketDomain = AF_PACKET;
-	    m_nSocketType = CSimpleSocket::SocketTypeRaw;
-#endif
-#ifdef _WIN32
-	    m_nSocketType = CSimpleSocket::SocketTypeInvalid;
-#endif
-	    break;
-	}
 	default:
-	    m_nSocketType = CSimpleSocket::SocketTypeInvalid;
+	    m_nSocketType = CSimpleSocket::SocketTypeTcp;
 	    break;
     }
 }
@@ -137,89 +108,6 @@ bool CSimpleSocket::Initialize()
 	SetBlocking ();
     return (IsSocketValid());
 }
-
-
-//------------------------------------------------------------------------------
-//
-// SetMulticast()
-//
-//------------------------------------------------------------------------------
-bool CSimpleSocket::SetMulticast(bool bEnable, uchar_t multicastTTL)
-{
-    bool bRetVal = false;
-
-    if (GetSocketType() == CSimpleSocket::SocketTypeUdp)
-    {
-        m_bIsMulticast = bEnable;
-        if (SETSOCKOPT(m_socket, IPPROTO_IP, IP_MULTICAST_TTL, (void *)&multicastTTL, sizeof(multicastTTL)) == SocketError)
-        {
-            TranslateSocketError();
-            bRetVal = false;
-        }
-        else
-        {
-            bRetVal = true;
-        }
-    }
-    else
-    {
-        m_socketErrno = CSimpleSocket::SocketProtocolError;
-    }
-
-    return bRetVal;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// SetSocketDscp() 
-//
-//------------------------------------------------------------------------------
-bool CSimpleSocket::SetSocketDscp(int32_t nDscp)
-{
-    bool  bRetVal = true;
-    int32_t nTempVal = nDscp;
-
-    nTempVal <<= 4;
-    nTempVal /= 4;
-
-    if (IsSocketValid())
-    {
-        if (SETSOCKOPT(m_socket, IPPROTO_IP, IP_TOS, &nTempVal, sizeof(nTempVal)) == SocketError)
-        {
-            TranslateSocketError();
-            bRetVal = false;
-        }
-    }
-
-    return bRetVal;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// GetSocketDscp() 
-//
-//------------------------------------------------------------------------------
-int32_t CSimpleSocket::GetSocketDscp(void)
-{
-    int32_t      nTempVal = 0;
-    socklen_t  nLen = 0; 
-
-    if (IsSocketValid())
-    {
-        if (GETSOCKOPT(m_socket, IPPROTO_IP, IP_TOS, &nTempVal, &nLen) == SocketError)
-        {
-            TranslateSocketError();
-        }
-
-        nTempVal *= 4;
-        nTempVal >>= 4;
-    }
-
-    return nTempVal;
-}
-
 
 //------------------------------------------------------------------------------
 //
@@ -314,23 +202,8 @@ int32_t CSimpleSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
 					} while (GetSocketError() == CSimpleSocket::SocketInterrupted);
 					break;
 				}
-				case CSimpleSocket::SocketTypeUdp:
-				{
-					do
-					{
-						int32_t bytes = SENDTO(m_socket, pBuf + BytesSent, block2sent, 
-										0, (const sockaddr *)&m_stServerSockaddr, sizeof(m_stServerSockaddr));
-						if (bytes > 0) {
-							bytesToSend -= bytes;
-							BytesSent += bytes;
-						}
-						else {
-							TranslateSocketError();
-							return BytesSent;
-						}
-					} while (GetSocketError() == CSimpleSocket::SocketInterrupted);
+				case CSimpleSocket::SocketTypeTcp6:
 					break;
-				}
 				default:
 					break;
 			}
@@ -366,23 +239,6 @@ bool CSimpleSocket::Close(void)
 
 	return bRetVal;
 }
-
-
-//------------------------------------------------------------------------------
-//
-// Shtudown()
-//
-//------------------------------------------------------------------------------
-bool CSimpleSocket::Shutdown(CShutdownMode nShutdown)
-{
-	CSocketError nRetVal = SocketEunknown;
-
-	nRetVal = (CSocketError)shutdown(m_socket, CSimpleSocket::Sends);
-	TranslateSocketError();
-
-	return (nRetVal == CSimpleSocket::SocketSuccess) ? true: false;
-}
-
 
 //------------------------------------------------------------------------------
 //
@@ -474,51 +330,6 @@ int32_t CSimpleSocket::Send(const struct iovec *sendVector, int32_t nNumItems)
 
     return BytesSent;
 }
-
-//------------------------------------------------------------------------------
-//
-// SetOptionReuseAddr()
-//																			
-//------------------------------------------------------------------------------
-bool CSimpleSocket::SetOptionReuseAddr()
-{
-    bool  bRetVal = false;
-    int32_t nReuse  = IPTOS_LOWDELAY;
-
-    if (SETSOCKOPT(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&nReuse, sizeof(int32_t)) == 0)
-    {
-        bRetVal = true;
-    }
-
-    TranslateSocketError();
-
-    return bRetVal;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// SetOptionLinger()
-//																			
-//------------------------------------------------------------------------------
-bool CSimpleSocket::SetOptionLinger(bool bEnable, uint16_t nTime)
-{
-    bool bRetVal = false;
-
-    m_stLinger.l_onoff = (bEnable == true) ? 1: 0;
-    m_stLinger.l_linger = nTime;
-
-    if (SETSOCKOPT(m_socket, SOL_SOCKET, SO_LINGER, &m_stLinger, sizeof(m_stLinger)) == 0)
-    {
-        bRetVal = true;
-    }
-
-    TranslateSocketError();
-
-    return bRetVal;
-}
-
-
 //------------------------------------------------------------------------------
 //
 // Receive() - Attempts to receive a block of data on an established		
@@ -561,33 +372,8 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t nMaxBytes)
 				}
 				break;
 			}
-			case CSimpleSocket::SocketTypeUdp:
+			case CSimpleSocket::SocketTypeTcp6:
 			{
-				uint32_t srcSize = sizeof(struct sockaddr_in);
-				if (GetMulticast() == true) {
-					int32_t bytes = RECVFROM(m_socket, buff.wr_ptr (), nMaxBytes, 0, &m_stMulticastGroup, &srcSize);
-					if (bytes > 0) {
-						buff.wr_ptr (bytes);
-						BytesReceived += bytes;
-						nMaxBytes -= bytes;
-					}
-					else {
-						TranslateSocketError();
-						return BytesReceived;
-					}
-				}
-				else {
-					int32_t bytes = RECVFROM(m_socket, buff.wr_ptr (), nMaxBytes, 0, &m_stClientSockaddr, &srcSize);
-					if (bytes > 0) {
-						buff.wr_ptr (bytes);
-						BytesReceived += bytes;
-						nMaxBytes -= bytes;
-					}
-					else {
-						TranslateSocketError();
-						return BytesReceived;
-					}
-				}
 				break;
 			}
 			default:

@@ -25,7 +25,7 @@ public:
 	virtual void add_block (const target_pos & tpos
 							, const uint32_t blk_len
 							, const uint64_t s_offset);
-	virtual void add_block (const uchar_t * data, const uint32_t blk_len, uint64_t const s_offset);
+	virtual void add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t s_offset);
 };
 
 /// \class

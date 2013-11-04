@@ -252,7 +252,7 @@ public:
 	/// \param[in]	shash 慢速 Hash 值。
 	/// \return		no return.
 	///
-	void add_block (uint32_t fhash, const slow_hash & shash);
+	void add_block (const uint32_t fhash, const slow_hash & shash);
 
 	/// \brief
 	/// 在表中查找是否有指定块的 Hash 对。

@@ -47,7 +47,7 @@
 #include "mytypes.h"
 #include "platform.h"
 #include "buffer.h"
-#include "ActiveSocket.h"
+#include "active_socket.h"
 
 namespace xdelta {
 
@@ -131,115 +131,6 @@ bool CActiveSocket::ConnectTCP(const uchar_t *pAddr, int16_t nPort)
     return bRetVal;
 }
 
-
-//------------------------------------------------------------------------------
-//
-// ConnectUDP() -
-//
-//------------------------------------------------------------------------------
-bool CActiveSocket::ConnectUDP(const uchar_t *pAddr, int16_t nPort)
-{
-    bool           bRetVal = false;
-    struct in_addr stIpAddress;
-
-    //------------------------------------------------------------------
-    // Pre-connection setup that must be preformed					 
-    //------------------------------------------------------------------
-    memset(&m_stServerSockaddr, 0, sizeof(m_stServerSockaddr));
-    m_stServerSockaddr.sin_family = AF_INET;
-
-    if ((m_pHE = GETHOSTBYNAME(pAddr)) == NULL) 
-    {
-#ifdef _WIN32
-        TranslateSocketError();
-#else
-        if (h_errno == HOST_NOT_FOUND)
-        {
-            SetSocketError(SocketInvalidAddress);
-        }
-#endif
-        return bRetVal;
-    }
-
-    memcpy(&stIpAddress, m_pHE->h_addr_list[0], m_pHE->h_length);
-    m_stServerSockaddr.sin_addr.s_addr = stIpAddress.s_addr;
-
-    if ((int32_t)m_stServerSockaddr.sin_addr.s_addr == CSimpleSocket::SocketError)
-    {
-        TranslateSocketError();
-        return bRetVal;
-    }
-
-    m_stServerSockaddr.sin_port = htons(nPort);
-
-    //------------------------------------------------------------------
-    // Connect to address "xxx.xxx.xxx.xxx"	(IPv4) address only.  
-    // 
-    //------------------------------------------------------------------
-    if (connect(m_socket, (struct sockaddr*)&m_stServerSockaddr, sizeof(m_stServerSockaddr)) != CSimpleSocket::SocketError)
-    {
-        bRetVal = true;
-    }
-
-    TranslateSocketError();
-    return bRetVal;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// ConnectRAW() -
-//
-//------------------------------------------------------------------------------
-bool CActiveSocket::ConnectRAW(const uchar_t *pAddr, int16_t nPort)
-{
-    bool           bRetVal = false;
-    struct in_addr stIpAddress;
-    //------------------------------------------------------------------
-    // Pre-connection setup that must be preformed					 
-    //------------------------------------------------------------------
-    memset(&m_stServerSockaddr, 0, sizeof(m_stServerSockaddr));
-    m_stServerSockaddr.sin_family = AF_INET;
-
-    if ((m_pHE = GETHOSTBYNAME(pAddr)) == NULL) 
-    {
-#ifdef _WIN32
-        TranslateSocketError();
-#else
-        if (h_errno == HOST_NOT_FOUND)
-        {
-            SetSocketError(SocketInvalidAddress);
-        }
-#endif
-        return bRetVal;
-    }
-
-    memcpy(&stIpAddress, m_pHE->h_addr_list[0], m_pHE->h_length);
-    m_stServerSockaddr.sin_addr.s_addr = stIpAddress.s_addr;
-
-    if ((int32_t)m_stServerSockaddr.sin_addr.s_addr == CSimpleSocket::SocketError)
-    {
-        TranslateSocketError();
-        return bRetVal;
-    }
-
-    m_stServerSockaddr.sin_port = htons(nPort);
-
-    //------------------------------------------------------------------
-    // Connect to address "xxx.xxx.xxx.xxx"	(IPv4) address only.  
-    // 
-    //------------------------------------------------------------------
-    if (connect(m_socket, (struct sockaddr*)&m_stServerSockaddr, sizeof(m_stServerSockaddr)) != CSimpleSocket::SocketError)
-    {
-        bRetVal = true;
-    }
-
-    TranslateSocketError();
-    return bRetVal;
-}
-
-
-
 //------------------------------------------------------------------------------
 //
 // Open() - Create a connection to a specified address on a specified port
@@ -274,13 +165,10 @@ bool CActiveSocket::Open(const uchar_t *pAddr, int16_t nPort)
             bRetVal = ConnectTCP(pAddr, nPort);
             break;
         }
-        case CSimpleSocket::SocketTypeUdp :
+        case CSimpleSocket::SocketTypeTcp6 :
         {
-            bRetVal = ConnectUDP(pAddr, nPort);
             break;
         }
-        case CSimpleSocket::SocketTypeRaw :
-            break;
         default:
             break;
     }

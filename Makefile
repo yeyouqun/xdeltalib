@@ -66,13 +66,13 @@ multiround.o:multiround.cpp
 inplace.o:inplace.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
-ActiveSocket.o:ActiveSocket.cpp
+active_socket.o:active_socket.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
-PassiveSocket.o:PassiveSocket.cpp
+passive_socket.o:passive_socket.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
-SimpleSocket.o:SimpleSocket.cpp
+simple_socket.o:simple_socket.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 
 xdelta_client.o:xdelta_client.cpp
@@ -85,8 +85,8 @@ stream.o:stream.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
 xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
-			 rw.o reconstruct.o multiround.o inplace.o SimpleSocket.o ActiveSocket.o \
-			 PassiveSocket.o xdelta_server.o xdelta_client.o stream.o
+			 rw.o reconstruct.o multiround.o inplace.o simple_socket.o active_socket.o \
+			 passive_socket.o xdelta_server.o xdelta_client.o stream.o
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
 test-server:xdelta testserver.cpp

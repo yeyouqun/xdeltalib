@@ -42,7 +42,7 @@
  *----------------------------------------------------------------------------*/
 #ifndef __PASSIVESOCKET_H__
 #define __PASSIVESOCKET_H__
-#include "ActiveSocket.h"
+#include "active_socket.h"
 
 /// @file
 /// 本文件中的类提供被动连接端的 Socket 类型定义及接口声明。

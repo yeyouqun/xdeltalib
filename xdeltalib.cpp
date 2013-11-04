@@ -98,7 +98,7 @@ const slow_hash * hash_table::find_block (const uint32_t fhash
 	return &*hashpos;
 }
 
-void hash_table::add_block (uint32_t fhash, const slow_hash & shash)
+void hash_table::add_block (const uint32_t fhash, const slow_hash & shash)
 {
 	hash_iter pos;
 	if ((pos = hash_table_.find (fhash)) == hash_table_.end ()) {
