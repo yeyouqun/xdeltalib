@@ -10,28 +10,53 @@
 #   $ make clean     Clean the objectives and target.
 ###############################################################################
 
-CFLAGS := -DPIC -fpic -fPIC -pthread -D_LINUX # -D__CXX11
-EXTRA_CFLAGS :=  -Wall -Wno-format -Wdeprecated-declarations
-ifeq ($(STD),1)
-EXTRA_CFLAGS += -std=c++0x -D__CXX_11__ 
-else
-EXTRA_CFLAGS += -Wno-deprecated -Wl,-rpath,/usr/local/lib64 # -Wl,-soname,libxdelta.so.1
+CFLAGS := -DPIC -fpic -fPIC -Wno-deprecated
+
+
+ifeq ($(P), U32) 
+	CFLAGS += -D_UNIX -m32
 endif
 
-TEST_EXTRA_CFLAGS = -D_LINUX
+ifeq ($(P), U64)
+	CFLAGS += -D_UNIX -m64
+endif
 
-LDFLAGS += -shared  -fPIC -fpic
+ifeq ($(P),L32)
+	CFLAGS += -D_LINUX  -Wl,-rpath,/usr/local/lib64 -m32
+endif
+
+ifeq ($(P),L64)
+	CFLAGS += -D_LINUX  -Wl,-rpath,/usr/local/lib64 -m64
+endif
+
+EXTRA_CFLAGS :=  -Wall -Wno-format -Wdeprecated-declarations
+
+ifeq ($(STD),1)
+	EXTRA_CFLAGS += -std=c++0x -D__CXX_11__ 
+endif
+
+LDFLAGS += -shared
+
+ifeq ($(P),L32)
+	LDFLAGS += -pthread
+endif
+
+ifeq ($(P),L64)
+	LDFLAGS += -pthread
+endif
+
+ifeq ($(P),U32)
+	LDFLAGS += -lsocket -m64
+endif
+
+ifeq ($(P),U64)
+	LDFLAGS += -lsocket -m64
+endif
+
 ifeq ($(DEBUG),1)
 EXTRA_CFLAGS += -g
-TEST_EXTRA_CFLAGS += -g
 else
 EXTRA_CFLAGS += -O2
-LDFLAGS += -O2
-TEST_EXTRA_CFLAGS += -O2
-endif
-
-ifeq ($(V),1)
-EXTRA_CFLAGS += -DVERBOSE
 endif
 
 CXX      := g++
@@ -90,12 +115,12 @@ xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
 test-server:xdelta testserver.cpp
-	$(CXX) -Wl,-rpath,. -o $@ testserver.cpp $(EXTRA_CFLAGS) -pthread $(TEST_EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta -fPIC -fpic -DPIC -Wl,-rpath,/usr/local/lib64
+	$(CXX) -Wl,-rpath,. -o $@ testserver.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
+                -Wno-deprecated -L. -lxdelta
                 
 test-client:xdelta testclient.cpp
-	$(CXX) -Wl,-rpath,. -o $@ testclient.cpp $(EXTRA_CFLAGS) -pthread $(TEST_EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta -fPIC -fpic -DPIC -Wl,-rpath,/usr/local/lib64
+	$(CXX) -Wl,-rpath,. -o $@ testclient.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
+                -Wno-deprecated -L. -lxdelta
                 
 clean:
 	rm -f *.o libxdelta.so* test-server test-client

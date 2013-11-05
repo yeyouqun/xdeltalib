@@ -450,3 +450,4 @@ inline bool is_no_file_error (const int32_t error_no)
 
 } // namespace xdelta
 #endif /*__XDELTA_LIB_H__*/
+

@@ -63,3 +63,4 @@ std::string DLL_EXPORT error_msg ();
 std::string get_tmp_fname (const std::string & fname);
 } // namespace xdelta
 #endif //__PLATFORM_H__
+

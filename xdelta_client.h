@@ -46,3 +46,4 @@ public:
 } //namespace xdelta
 
 #endif //__XDELTA_CLIENT_H__
+

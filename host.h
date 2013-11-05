@@ -87,7 +87,7 @@ namespace xdelta {
 	#define GETSOCKOPT(a,b,c,d,e)  getsockopt(a,b,c,(char *)d, (int *)e)
 	#define SETSOCKOPT(a,b,c,d,e)  setsockopt(a,b,c,(char *)d, (int)e)
 	#define GETHOSTBYNAME(a)       gethostbyname((const char *)a)
-#elif defined (_LINUX)
+#elif defined (_LINUX) || defined (_UNIX)
 	#define ACCEPT(a,b,c)          accept(a,b,c)
 	#define CONNECT(a,b,c)         connect(a,b,c)
 	#define CLOSE(a)               close(a)

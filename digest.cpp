@@ -219,8 +219,9 @@ copy8( /* @out@ */ uchar_t *out, uint64_t const x)
 /* We only need this if we are big-endian */
 #ifdef WORDS_BIGENDIAN
 inline static void
-copy64( /* @out@ */ uint32_t * M, uchar_t const *in)
+copy64( /* @out@ */ uint32_t * M, void const *ptr)
 {
+    uchar_t const * in = (uchar_t const *)ptr;
     int i=16;
 
     while (i--) {
@@ -404,3 +405,4 @@ rs_mdfour(uchar_t *out, void const *in, size_t n)
 }
 
 } // namespace xdelta
+

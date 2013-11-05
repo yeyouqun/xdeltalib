@@ -184,3 +184,4 @@ inline void streamize_data (CSimpleSocket & socket
 } //namespace xdelta
 
 #endif //__XDELTA_SERVER_H__
+

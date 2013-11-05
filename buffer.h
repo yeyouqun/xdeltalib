@@ -265,8 +265,8 @@ inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, uint
 	// we use little endian bytes order.
 	char_type * rdptr = buff.rd_ptr ();
 #if BYTE_ORDER == BIG_ENDIAN
-	var = ((uint16_t)rdptr [0]) | (((uint16_t)rdptr [1]) << 8)
-			| (((uint16_t)rdptr [2]) << 16) | (((uint16_t)rdptr [3]) << 24);
+	var = ((uint32_t)rdptr [0]) | (((uint32_t)rdptr [1]) << 8)
+			| (((uint32_t)rdptr [2]) << 16) | (((uint32_t)rdptr [3]) << 24);
 #else
 	memcpy (&var, rdptr, 4);
 #endif
@@ -285,10 +285,10 @@ inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, uint
 	// we use little endian bytes order.
 	char_type * rdptr = buff.rd_ptr ();
 #if BYTE_ORDER == BIG_ENDIAN
-	var = ((uint16_t)rdptr [0]) | (((uint16_t)rdptr [1]) << 8)
-			| (((uint16_t)rdptr [2]) << 16) | (((uint16_t)rdptr [3]) << 24)
-			| (((uint16_t)rdptr [4]) << 32) | (((uint16_t)rdptr [5]) << 40)
-			| (((uint16_t)rdptr [6]) << 48) | (((uint16_t)rdptr [7]) << 56);
+	var = ((uint64_t)rdptr [0]) | (((uint64_t)rdptr [1]) << 8)
+			| (((uint64_t)rdptr [2]) << 16) | (((uint64_t)rdptr [3]) << 24)
+			| (((uint64_t)rdptr [4]) << 32) | (((uint64_t)rdptr [5]) << 40)
+			| (((uint64_t)rdptr [6]) << 48) | (((uint64_t)rdptr [7]) << 56);
 #else
 	memcpy (&var, rdptr, 8);
 #endif
@@ -393,3 +393,4 @@ inline char_buffer<char_type> &	operator >> (char_buffer<char_type> & buff, int6
 
 } // namespace xdelta
 #endif //__BUFFER_H__
+

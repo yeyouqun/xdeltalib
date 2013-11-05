@@ -70,3 +70,4 @@ inline void get_slow_hash (const uchar_t *buf1, uint32_t len, uchar_t hash[DIGES
 } // namespace xdelta
 
 #endif //__DIGEST_H__
+

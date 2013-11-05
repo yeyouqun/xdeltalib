@@ -222,3 +222,4 @@ public:
 
 } // namespace xdelta
 #endif //__RW_H__
+

@@ -148,3 +148,4 @@ void reconstructor::on_error (const std::string & errmsg, const int errorno)
 }
 
 } //namespace xdelta
+

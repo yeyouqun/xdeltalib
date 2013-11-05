@@ -18,7 +18,7 @@
     #else
     	#include <unordered_map>
     #endif
-    #include <error.h>
+    #include <errno.h>
     #include <string.h>
 #endif
 
@@ -83,3 +83,4 @@ std::string get_tmp_fname (const std::string & fname)
 }
 
 } // namespace xdelta
+

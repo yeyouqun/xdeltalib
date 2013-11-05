@@ -104,3 +104,4 @@ public:
 } // namespace xdelta
 
 #endif //__INPLACE_H__
+

@@ -428,7 +428,7 @@ bool CSimpleSocket::SetBlocking(void)
 //------------------------------------------------------------------------------
 void CSimpleSocket::TranslateSocketError(void)
 {
-#ifdef _LINUX
+#if defined (_LINUX) || defined (_UNIX)
     switch (errno)
     {
         case EXIT_SUCCESS:
@@ -614,3 +614,4 @@ bool CSimpleSocket::Select(int32_t nTimeoutSec, int32_t nTimeoutUSec)
 }
 
 } //namespace xdelta
+

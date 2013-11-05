@@ -74,3 +74,4 @@ extern const uint16_t SINGLE_ROUND_FLAG;
 extern const uint16_t INPLACE_FLAG;
 
 } // namespace xdelta
+

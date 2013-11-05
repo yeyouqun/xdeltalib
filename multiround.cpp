@@ -196,3 +196,4 @@ void multiround_hasher_stream::on_error (const std::string & errmsg, const int e
 }
 
 } //namespace xdelta
+

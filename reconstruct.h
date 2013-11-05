@@ -65,3 +65,4 @@ uint32_t seek_and_read (file_reader & reader
 					, uchar_t * data);
 } // namespace xdelta
 #endif //__RECONSTRUCT_H__
+

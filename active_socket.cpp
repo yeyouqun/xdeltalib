@@ -194,3 +194,4 @@ bool CActiveSocket::Open(const uchar_t *pAddr, int16_t nPort)
 }
 
 } //namespace xdelta
+

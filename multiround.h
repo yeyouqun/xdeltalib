@@ -70,3 +70,4 @@ public:
 } // namespace xdelta
 
 #endif //__MULTIROUND_H__
+

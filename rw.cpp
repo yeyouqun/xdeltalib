@@ -431,3 +431,4 @@ void f_local_fwriter::set_file_size (uint64_t filsize)
 }
 
 } //namespace xdelta
+

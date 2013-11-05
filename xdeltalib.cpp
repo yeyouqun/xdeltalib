@@ -554,3 +554,4 @@ void DLL_EXPORT get_file_digest (file_reader & reader
 }
 
 } //namespace xdelta
+

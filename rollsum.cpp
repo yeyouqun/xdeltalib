@@ -57,3 +57,4 @@ void RollsumUpdate(Rollsum *sum,const unsigned char *buf,unsigned int len) {
 }
 
 } //namespace xdelta
+

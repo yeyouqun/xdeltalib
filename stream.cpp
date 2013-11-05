@@ -18,6 +18,11 @@
     	#include <unordered_map>
     #endif
     #include <memory.h>
+#if defined (_UNIX)
+    #include <sys/types.h>
+    #include <netinet/in.h>
+    #include <inttypes.h>
+#endif
 #endif
 
 #include "mytypes.h"
@@ -362,4 +367,5 @@ void multiround_tcp_stream::end_one_round ()
 	observer_.end_one_round ();
 }
 
-} // namespace xdelt
+} // namespace xdelta
+

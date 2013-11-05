@@ -30,7 +30,7 @@ namespace xdelta {
 		#define __WORDSIZE 32
 	#endif
 #pragma warning (disable:4251)
-#elif defined (_LINUX)
+#elif defined (_LINUX) || defined (_UNIX)
 	#ifdef __GNUC__
 		#if defined (__LP64__) || defined (_LP64)
 			#define __WORDSIZE 64
@@ -43,7 +43,6 @@ namespace xdelta {
 #else
 	#error Current platform not support temporary.
 #endif
-
 
 #ifdef _WIN32
     struct iovec {
@@ -148,22 +147,26 @@ public:
 #endif
 
 #ifndef BYTE_ORDER
+	# define LITTLE_ENDIAN 0x4321
+	# define BIG_ENDIAN    0x1234
+
 	#ifdef _WIN32
-		# define LITTLE_ENDIAN 0x4321
-		# define BIG_ENDIAN    0x1234
 		# if defined (_M_AMD64) || defined (_M_IX86)
 			#define BYTE_ORDER LITTLE_ENDIAN
 		# else
 			#define BYTE_ORDER BIG_ENDIAN
 			#define WORDS_BIGENDIAN 1
 		# endif
-	#else
+	#elif defined (_LINUX)
 		#ifdef __ORDER_LITTLE_ENDIAN__ == __BYTE_ORDER__
 			#define BYTE_ORDER LITTLE_ENDIAN
 		#else
 			#define BYTE_ORDER BIG_ENDIAN
 			#define WORDS_BIGENDIAN 1
-		#endif 
+		#endif
+	#elif defined (_UNIX)
+		#define BYTE_ORDER BIG_ENDIAN
+		#define WORDS_BIGENDIAN 1
 	#endif
 #endif
 

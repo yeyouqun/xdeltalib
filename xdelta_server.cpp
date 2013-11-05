@@ -17,10 +17,15 @@
     	#include <unordered_map>
     #endif
     #include <memory.h>
+#if defined (_UNIX)
+    #include <sys/types.h>
+    #include <netinet/in.h>
+    #include <inttypes.h>
+#endif
 #endif
 
-#include "mytypes.h"
 #include "host.h"
+#include "mytypes.h"
 #include "buffer.h"
 #include "simple_socket.h"
 #include "passive_socket.h"
