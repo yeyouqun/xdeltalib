@@ -38,15 +38,15 @@ endif
 LDFLAGS += -shared
 
 ifeq ($(P),L32)
-	LDFLAGS += -pthread
+	LDFLAGS += -pthread -m32
 endif
 
 ifeq ($(P),L64)
-	LDFLAGS += -pthread
+	LDFLAGS += -pthread -m64
 endif
 
 ifeq ($(P),U32)
-	LDFLAGS += -lsocket -m64
+	LDFLAGS += -lsocket -m32
 endif
 
 ifeq ($(P),U64)
