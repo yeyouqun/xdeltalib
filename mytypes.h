@@ -165,8 +165,12 @@ public:
 			#define WORDS_BIGENDIAN 1
 		#endif
 	#elif defined (_UNIX)
-		#define BYTE_ORDER BIG_ENDIAN
-		#define WORDS_BIGENDIAN 1
+		#if defined(__i386__) || defined (__amd64__)
+			#define BYTE_ORDER LITTLE_ENDIAN
+		#else
+			#define BYTE_ORDER BIG_ENDIAN
+			#define WORDS_BIGENDIAN 1
+		#endif
 	#endif
 #endif
 
