@@ -22,11 +22,11 @@ ifeq ($(P), U64)
 endif
 
 ifeq ($(P),L32)
-	CFLAGS += -D_LINUX  -Wl,-rpath,/usr/local/lib64 -m32
+	CFLAGS += -D_LINUX  -m32
 endif
 
 ifeq ($(P),L64)
-	CFLAGS += -D_LINUX  -Wl,-rpath,/usr/local/lib64 -m64
+	CFLAGS += -D_LINUX  -m64
 endif
 
 EXTRA_CFLAGS :=  -Wall -Wno-format -Wdeprecated-declarations
@@ -38,11 +38,13 @@ endif
 LDFLAGS += -shared
 
 ifeq ($(P),L32)
-	LDFLAGS += -pthread -m32
+	LDFLAGS += -pthread -m32 -Wl,-rpath,/usr/local/lib
+	TEST_LD_FLAGS := -Wl,-rpath,/usr/local/lib
 endif
 
 ifeq ($(P),L64)
-	LDFLAGS += -pthread -m64
+	LDFLAGS += -pthread -m64 -Wl,-rpath,/usr/local/lib64
+	TEST_LD_FLAGS := -Wl,-rpath,/usr/local/lib64
 endif
 
 ifeq ($(P),U32)
@@ -116,11 +118,11 @@ xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
 	
 test-server:xdelta testserver.cpp
 	$(CXX) -Wl,-rpath,. -o $@ testserver.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta
+                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
 test-client:xdelta testclient.cpp
 	$(CXX) -Wl,-rpath,. -o $@ testclient.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta
+                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
 clean:
 	rm -f *.o libxdelta.so* test-server test-client

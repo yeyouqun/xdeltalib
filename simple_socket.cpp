@@ -103,7 +103,7 @@ bool CSimpleSocket::Initialize()
     //-------------------------------------------------------------------------
     // Create the basic Socket Handle										 
     //-------------------------------------------------------------------------
-    m_socket = socket(m_nSocketDomain, m_nSocketType, 0);
+    m_socket = socket(m_nSocketDomain, SOCK_STREAM, 0);
     TranslateSocketError();
 	SetBlocking ();
     return (IsSocketValid());
