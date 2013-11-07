@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActiveSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="buffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -27,9 +24,6 @@
     <ClInclude Include="fast_mutex.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Host.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="inplace.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -37,9 +31,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="mytypes.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PassiveSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="platform.h">
@@ -52,9 +43,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rw.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="stream.h">
@@ -72,11 +60,17 @@
     <ClInclude Include="xdeltalib.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="active_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="passive_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ActiveSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="digest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -84,9 +78,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="multiround.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PassiveSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="platform.cpp">
@@ -99,9 +90,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="rw.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stream.cpp">
@@ -117,6 +105,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="xdeltalib.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="active_socket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="passive_socket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_socket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
