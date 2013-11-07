@@ -78,8 +78,7 @@
 
 #endif
 
-#include "host.h"
-
+#include "platform.h"
 /// @file
 /// 本文件中的类提供 Socket 基础类声明及接口。
 

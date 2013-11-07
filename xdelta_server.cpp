@@ -24,7 +24,6 @@
 #endif
 #endif
 
-#include "host.h"
 #include "mytypes.h"
 #include "buffer.h"
 #include "simple_socket.h"

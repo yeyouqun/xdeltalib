@@ -36,9 +36,6 @@ struct equal_node
 	uint32_t	deleted:1;	///< 本对象所表示的块是否已经删除（有循环依赖）。
 };
 
-#define YES 1
-#define NO 0
-
 /// \struct
 /// 描述一个不同的数据对类型
 struct diff_node

@@ -398,10 +398,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\host.h"
-				>
-			</File>
-			<File
 				RelativePath=".\inplace.h"
 				>
 			</File>

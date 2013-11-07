@@ -184,7 +184,7 @@ public:
 	~f_local_creator () {}
 	virtual file_reader * create_reader (const std::string & filename)
 	{
-		std::string pathname = path_ + "/" + filename;
+		std::string pathname = path_ + SEPERATOR + filename;
 		return new f_local_freader (path_, filename);
 	}
 	virtual file_writer * create_writer (const std::string & filename)
@@ -204,14 +204,14 @@ public:
 	}
 	virtual void rename (const std::string & old, const std::string & newname)
 	{
-		std::string oldname = path_ + "/" + old,
-			newname1 = path_ + "/" + newname;
+		std::string oldname = path_ + SEPERATOR + old,
+			newname1 = path_ + SEPERATOR + newname;
 		::remove (newname1.c_str ());
 		::rename (oldname.c_str (), newname1.c_str ());
 	}
 	virtual void rm_file (const std::string & filename)
 	{
-		std::string name = path_ + "/" + filename;
+		std::string name = path_ + SEPERATOR + filename;
 #ifdef _WIN32
 		DeleteFileA (name.c_str ());
 #else

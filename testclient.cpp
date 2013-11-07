@@ -114,7 +114,7 @@ void traverse_source (const std::string & pathname
 {
 	std::string fullpath = pathname;
 	if (!subpath.empty ())
-		fullpath = pathname + "/" + subpath;
+		fullpath = pathname + SEPERATOR + subpath;
 
 #ifdef _WIN32
 	struct _stat st;
@@ -144,7 +144,7 @@ void traverse_source (const std::string & pathname
 				if (subpath.empty ())
 					subpathname = fi.name;
 				else
-					subpathname = subpath + "/" + std::string (fi.name);
+					subpathname = subpath + SEPERATOR + std::string (fi.name);
 				traverse_source (pathname, subpathname, client);
 			}
 			_findclose (handle);
@@ -163,7 +163,7 @@ void traverse_source (const std::string & pathname
 				if (subpath.empty ())
 					subpathname = dent->d_name;
 				else
-					subpathname = subpath + "/" + std::string (dent->d_name);
+					subpathname = subpath + SEPERATOR + std::string (dent->d_name);
 					    
 				traverse_source (pathname, subpathname, client);
 			}

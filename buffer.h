@@ -12,15 +12,16 @@
 
 namespace xdelta {
 
+/// \class
+/// \brief A very simple buffer class that allocates a buffer of 
+/// a given type and size in the constructor and 
+/// deallocates the buffer in the destructor. 
+/// 
+/// This class is useful everywhere where a temporary buffer 
+/// is needed. 
+/// T 的类型限于 char 以及 unsigned char 两种类型。
 template <class T> 
 class char_buffer 
-	/// A very simple buffer class that allocates a buffer of 
-	/// a given type and size in the constructor and 
-	/// deallocates the buffer in the destructor. 
-	/// 
-	/// This class is useful everywhere where a temporary buffer 
-	/// is needed. 
-	/// T 的类型限于 char 以及 unsigned char 两种类型。
 { 
 public: 
 	/// \brief

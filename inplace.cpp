@@ -121,8 +121,8 @@ void in_place_stream::add_block (const target_pos & tpos
 	equal_node * p = new equal_node ();
 	p->blength = blk_len;
 	p->s_offset = s_offset;
-	p->visited = NO;
-	p->stacked = NO;
+	p->visited = FALSE;
+	p->stacked = FALSE;
 	p->tpos = tpos;
 	equal_nodes_.push_back (p);
 }
@@ -197,17 +197,17 @@ void in_place_stream::_handle_node (std::set<equal_node *> & enode_set
 									, equal_node * node
 									, std::list<equal_node*> & result)
 {
-	if (node->stacked == YES) { // cyclic condition, convert it to adding bytes to target.
+	if (node->stacked == TRUE) { // cyclic condition, convert it to adding bytes to target.
 		diff_node dn;
 		dn.blength = node->blength;
 		dn.s_offset = node->s_offset;
 		diff_nodes_.push_back (dn);
 		enode_set.erase (node);
-		node->deleted = YES;
+		node->deleted = TRUE;
 		return;
 	}
 
-	if (node->visited == YES || node->deleted == YES)
+	if (node->visited == TRUE || node->deleted == TRUE)
 		return;
 
 	uint64_t left_index = node->s_offset / node->blength, 
@@ -223,27 +223,27 @@ void in_place_stream::_handle_node (std::set<equal_node *> & enode_set
 	// to check if this equal node is overlap with one and/or its 
 	// directly following block on target.
 	if (pos != enode_set.end () && *pos != node) {
-		node->stacked = YES;
+		node->stacked = TRUE;
 		_handle_node (enode_set, *pos, result);
-		node->stacked = NO;
+		node->stacked = FALSE;
 	}
 
-	if (node->deleted == NO) {
+	if (node->deleted == FALSE) {
 		enode.tpos.index = right_index;
 		pos = enode_set.find (&enode);
 		if (pos != enode_set.end () && *pos != node) {
-			node->stacked = YES;
+			node->stacked = TRUE;
 			_handle_node (enode_set, *pos, result);
-			node->stacked = NO;
+			node->stacked = FALSE;
 		}
 	}
 	// this node's all dependencies have been resolved.
 	// so push the node to the back, and when return from this call,
 	// blocks depend on this node will be pushed to the back just behind
 	// its dependent block.
-	if (node->deleted == NO) {
+	if (node->deleted == FALSE) {
 		result.push_back (node);
-		node->visited = YES;
+		node->visited = TRUE;
 	}
 	return;
 }

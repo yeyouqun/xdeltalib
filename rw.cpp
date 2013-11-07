@@ -201,7 +201,7 @@ f_local_freader::f_local_freader (const std::string & path, const std::string & 
 #else
 					f_fd_ (-1), 
 #endif
-					f_name_ (path + "/" + fname),
+					f_name_ (path + SEPERATOR + fname),
 					f_path_ (path),
 					f_filename_ (fname)
 {
@@ -393,7 +393,7 @@ f_local_fwriter::f_local_fwriter (const std::string & path, const std::string & 
 #else
 					f_fd_ (-1), 
 #endif
-					f_name_ (path + "/" + fname),
+					f_name_ (path + SEPERATOR + fname),
 					f_path_ (path),
 					f_filename_ (fname)
 {

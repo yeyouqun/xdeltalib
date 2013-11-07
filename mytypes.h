@@ -51,19 +51,6 @@ namespace xdelta {
     };
 
     typedef int socklen_t;
-	#define UINT8_MAX  (UCHAR_MAX)
-	#define UINT16_MAX (USHRT_MAX)
-	#define UINT32_MAX (ULONG_MAX)
-
-	#if __WORDSIZE == 64
-		#ifndef SIZE_MAX
-			#define SIZE_MAX (18446744073709551615UL)
-		#endif
-	#else
-		#ifndef SIZE_MAX
-			#define SIZE_MAX (4294967295U)
-		#endif
-	#endif
 	#define ssize_t size_t
 #else
     typedef int            SOCKET;
