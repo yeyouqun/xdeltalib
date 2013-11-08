@@ -28,7 +28,7 @@ freely, subject to the following restrictions:
 // Which platform are we on?
 #if !defined(_TTHREAD_PLATFORM_DEFINED_)
   #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-    #define _TTHREAD_WIN32_
+    #define _WIN32
   #else
     #define _TTHREAD_POSIX_
   #endif
@@ -45,7 +45,7 @@ freely, subject to the following restrictions:
   #define _FAST_MUTEX_SYS_
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
     #define __UNDEF_LEAN_AND_MEAN
@@ -92,7 +92,7 @@ class fast_mutex {
 #else
     fast_mutex()
     {
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
       InitializeCriticalSection(&mHandle);
   #elif defined(_TTHREAD_POSIX_)
       pthread_mutex_init(&mHandle, NULL);
@@ -104,7 +104,7 @@ class fast_mutex {
     /// Destructor.
     ~fast_mutex()
     {
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
       DeleteCriticalSection(&mHandle);
   #elif defined(_TTHREAD_POSIX_)
       pthread_mutex_destroy(&mHandle);
@@ -124,7 +124,7 @@ class fast_mutex {
         gotLock = try_lock();
         if(!gotLock)
         {
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
           Sleep(0);
   #elif defined(_TTHREAD_POSIX_)
           sched_yield();
@@ -132,7 +132,7 @@ class fast_mutex {
         }
       } while(!gotLock);
 #else
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
       EnterCriticalSection(&mHandle);
   #elif defined(_TTHREAD_POSIX_)
       pthread_mutex_lock(&mHandle);
@@ -184,7 +184,7 @@ class fast_mutex {
   #endif
       return (oldLock == 0);
 #else
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
       return TryEnterCriticalSection(&mHandle) ? true : false;
   #elif defined(_TTHREAD_POSIX_)
       return (pthread_mutex_trylock(&mHandle) == 0) ? true : false;
@@ -221,7 +221,7 @@ class fast_mutex {
       mLock = 0;
   #endif
 #else
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
       LeaveCriticalSection(&mHandle);
   #elif defined(_TTHREAD_POSIX_)
       pthread_mutex_unlock(&mHandle);
@@ -233,7 +233,7 @@ class fast_mutex {
 #if defined(_FAST_MUTEX_ASM_)
     int mLock;
 #else
-  #if defined(_TTHREAD_WIN32_)
+  #if defined(_WIN32)
     CRITICAL_SECTION mHandle;
   #elif defined(_TTHREAD_POSIX_)
     pthread_mutex_t mHandle;

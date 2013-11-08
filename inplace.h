@@ -12,9 +12,6 @@ namespace xdelta {
 class DLL_EXPORT in_place_reconstructor : public reconstructor
 {
 	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len);
-	virtual void add_block (const target_pos & tpos
-							, const uint32_t blk_len
-							, const uint64_t s_offset);
 	virtual void add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t s_offset);
 	virtual void end_hash_stream (const uint64_t filsize);
 	virtual void on_error (const std::string & errmsg, const int errorno);

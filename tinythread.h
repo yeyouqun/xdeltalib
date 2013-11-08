@@ -29,16 +29,14 @@ freely, subject to the following restrictions:
 
 // Which platform are we on?
 #if !defined(_TTHREAD_PLATFORM_DEFINED_)
-  #if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
-    #define _TTHREAD_WIN32_
-  #else
+  #if !(defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__))
     #define _TTHREAD_POSIX_
   #endif
   #define _TTHREAD_PLATFORM_DEFINED_
 #endif
 
 // Platform specific includes
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
     #define __UNDEF_LEAN_AND_MEAN
@@ -127,11 +125,11 @@ class mutex {
   public:
     /// Constructor.
     mutex()
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       : mAlreadyLocked(false)
 #endif
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       InitializeCriticalSection(&mHandle);
 #else
       pthread_mutex_init(&mHandle, NULL);
@@ -141,7 +139,7 @@ class mutex {
     /// Destructor.
     ~mutex()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       DeleteCriticalSection(&mHandle);
 #else
       pthread_mutex_destroy(&mHandle);
@@ -154,7 +152,7 @@ class mutex {
     /// @see lock_guard
     inline void lock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       EnterCriticalSection(&mHandle);
       while(mAlreadyLocked) Sleep(1000); // Simulate deadlock...
       mAlreadyLocked = true;
@@ -170,7 +168,7 @@ class mutex {
     /// not be acquired.
     inline bool try_lock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       bool ret = (TryEnterCriticalSection(&mHandle) ? true : false);
       if(ret && mAlreadyLocked)
       {
@@ -188,7 +186,7 @@ class mutex {
     /// be unblocked.
     inline void unlock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       mAlreadyLocked = false;
       LeaveCriticalSection(&mHandle);
 #else
@@ -199,7 +197,7 @@ class mutex {
     _TTHREAD_DISABLE_ASSIGNMENT(mutex)
 
   private:
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     CRITICAL_SECTION mHandle;
     bool mAlreadyLocked;
 #else
@@ -220,7 +218,7 @@ class recursive_mutex {
     /// Constructor.
     recursive_mutex()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       InitializeCriticalSection(&mHandle);
 #else
       pthread_mutexattr_t attr;
@@ -233,7 +231,7 @@ class recursive_mutex {
     /// Destructor.
     ~recursive_mutex()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       DeleteCriticalSection(&mHandle);
 #else
       pthread_mutex_destroy(&mHandle);
@@ -246,7 +244,7 @@ class recursive_mutex {
     /// @see lock_guard
     inline void lock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       EnterCriticalSection(&mHandle);
 #else
       pthread_mutex_lock(&mHandle);
@@ -260,7 +258,7 @@ class recursive_mutex {
     /// not be acquired.
     inline bool try_lock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       return TryEnterCriticalSection(&mHandle) ? true : false;
 #else
       return (pthread_mutex_trylock(&mHandle) == 0) ? true : false;
@@ -272,7 +270,7 @@ class recursive_mutex {
     /// be unblocked.
     inline void unlock()
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       LeaveCriticalSection(&mHandle);
 #else
       pthread_mutex_unlock(&mHandle);
@@ -282,7 +280,7 @@ class recursive_mutex {
     _TTHREAD_DISABLE_ASSIGNMENT(recursive_mutex)
 
   private:
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     CRITICAL_SECTION mHandle;
 #else
     pthread_mutex_t mHandle;
@@ -359,7 +357,7 @@ class lock_guard {
 class condition_variable {
   public:
     /// Constructor.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     condition_variable();
 #else
     condition_variable()
@@ -369,7 +367,7 @@ class condition_variable {
 #endif
 
     /// Destructor.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     ~condition_variable();
 #else
     ~condition_variable()
@@ -386,7 +384,7 @@ class condition_variable {
     template <class _mutexT>
     inline void wait(_mutexT &aMutex)
     {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
       // Increment number of waiters
       EnterCriticalSection(&mWaitersCountLock);
       ++ mWaitersCount;
@@ -407,7 +405,7 @@ class condition_variable {
     /// one will be woken up.
     /// @note Only threads that started waiting prior to this call will be
     /// woken up.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     void notify_one();
 #else
     inline void notify_one()
@@ -421,7 +419,7 @@ class condition_variable {
     /// be woken up.
     /// @note Only threads that started waiting prior to this call will be
     /// woken up.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     void notify_all();
 #else
     inline void notify_all()
@@ -433,7 +431,7 @@ class condition_variable {
     _TTHREAD_DISABLE_ASSIGNMENT(condition_variable)
 
   private:
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     void _wait();
     HANDLE mEvents[2];                  ///< Signal and broadcast event HANDLEs.
     unsigned int mWaitersCount;         ///< Count of the number of waiters.
@@ -447,7 +445,7 @@ class condition_variable {
 /// Thread class.
 class thread {
   public:
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     typedef HANDLE native_handle_type;
 #else
     typedef pthread_t native_handle_type;
@@ -459,7 +457,7 @@ class thread {
     /// Construct a @c thread object without an associated thread of execution
     /// (i.e. non-joinable).
     thread() : mHandle(0), mNotAThread(true)
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     , mWin32ThreadID(0)
 #endif
     {}
@@ -521,12 +519,12 @@ class thread {
     native_handle_type mHandle;   ///< Thread handle.
     mutable mutex mDataMutex;     ///< Serializer for access to the thread private data.
     bool mNotAThread;             ///< True if this object is not a thread of execution.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     unsigned int mWin32ThreadID;  ///< Unique thread ID (filled out by _beginthreadex).
 #endif
 
     // This is the internal thread wrapper function.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     static unsigned WINAPI wrapper_function(void * aArg);
 #else
     static void * wrapper_function(void * aArg);
@@ -640,7 +638,7 @@ thread::id get_id();
 /// that is ready to run on the current processor.
 inline void yield()
 {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 Sleep(0);
 #else
 sched_yield();
@@ -658,7 +656,7 @@ sched_yield();
 /// milliseconds, seconds, minutes and hours.
 template <class _Rep, class _Period> void sleep_for(const duration<_Rep, _Period>& aTime)
 {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 Sleep(int(double(aTime.count()) * (1000.0 * _Period::_as_double()) + 0.5));
 #else
 usleep(int(double(aTime.count()) * (1000000.0 * _Period::_as_double()) + 0.5));

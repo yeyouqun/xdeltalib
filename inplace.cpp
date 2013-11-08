@@ -59,17 +59,6 @@ void in_place_reconstructor::start_hash_stream (const std::string & fname
 	ftmpname_.clear ();
 }
 
-void in_place_reconstructor::add_block (const target_pos & tpos
-							, const uint32_t blk_len
-							, const uint64_t s_offset)
-{
-	assert (tpos.t_offset == 0);
-	if (tpos.index * blk_len == s_offset)
-		return;
-
-	reconstructor::add_block (tpos, blk_len, s_offset);
-}
-
 void in_place_reconstructor::add_block (const uchar_t * data
 								, const uint32_t blk_len, const uint64_t s_offset)
 {
@@ -179,7 +168,13 @@ void in_place_stream::_calc_send ()
 
 	for (it_t pos = result.begin (); pos != result.end (); ++pos) {
 		equal_node * node = *pos;
-		output_.add_block (node->tpos, node->blength, node->s_offset);
+		assert (node->tpos.t_offset == 0);
+		//
+		// 对于没有移动的块，不需要发送，可以节省一些传输成本，对于只更改不插入的文件
+		// 这会带来直接的优势。并且在重新构造文件时，因为移动更少的数据，因此会有直接的性能提升。
+		//
+		if (node->tpos.index * node->blength != node->s_offset)
+			output_.add_block (node->tpos, node->blength, node->s_offset);
 	}
 
 	reader_.open_file ();

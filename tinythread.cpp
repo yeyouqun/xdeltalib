@@ -27,7 +27,7 @@ freely, subject to the following restrictions:
 #if defined(_TTHREAD_POSIX_)
   #include <unistd.h>
   #include <map>
-#elif defined(_TTHREAD_WIN32_)
+#elif defined(_WIN32)
   #include <process.h>
 #endif
 
@@ -48,12 +48,12 @@ namespace xdelta {
 // Vista condition variables.
 //------------------------------------------------------------------------------
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   #define _CONDITION_EVENT_ONE 0
   #define _CONDITION_EVENT_ALL 1
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 condition_variable::condition_variable() : mWaitersCount(0)
 {
   mEvents[_CONDITION_EVENT_ONE] = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -62,7 +62,7 @@ condition_variable::condition_variable() : mWaitersCount(0)
 }
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 condition_variable::~condition_variable()
 {
   CloseHandle(mEvents[_CONDITION_EVENT_ONE]);
@@ -71,7 +71,7 @@ condition_variable::~condition_variable()
 }
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 void condition_variable::_wait()
 {
   // Wait for either event to become signaled due to notify_one() or
@@ -91,7 +91,7 @@ void condition_variable::_wait()
 }
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 void condition_variable::notify_one()
 {
   // Are there any waiters?
@@ -105,7 +105,7 @@ void condition_variable::notify_one()
 }
 #endif
 
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 void condition_variable::notify_all()
 {
   // Are there any waiters?
@@ -154,7 +154,7 @@ struct _thread_start_info {
 };
 
 // Thread wrapper function.
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
 unsigned WINAPI thread::wrapper_function(void * aArg)
 #elif defined(_TTHREAD_POSIX_)
 void * thread::wrapper_function(void * aArg)
@@ -201,7 +201,7 @@ thread::thread(void (*aFunction)(void *), void * aArg)
   mNotAThread = false;
 
   // Create the thread
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   mHandle = (HANDLE) _beginthreadex(0, 0, wrapper_function, (void *) ti, 0, &mWin32ThreadID);
 #elif defined(_TTHREAD_POSIX_)
   if(pthread_create(&mHandle, NULL, wrapper_function, (void *) ti) != 0)
@@ -226,7 +226,7 @@ void thread::join()
 {
   if(joinable())
   {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     WaitForSingleObject(mHandle, INFINITE);
     CloseHandle(mHandle);
 #elif defined(_TTHREAD_POSIX_)
@@ -248,7 +248,7 @@ void thread::detach()
   mDataMutex.lock();
   if(!mNotAThread)
   {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
     CloseHandle(mHandle);
 #elif defined(_TTHREAD_POSIX_)
     pthread_detach(mHandle);
@@ -262,7 +262,7 @@ thread::id thread::get_id() const
 {
   if(!joinable())
     return id();
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   return id((unsigned long int) mWin32ThreadID);
 #elif defined(_TTHREAD_POSIX_)
   return _pthread_t_to_ID(mHandle);
@@ -271,18 +271,18 @@ thread::id thread::get_id() const
 
 unsigned thread::hardware_concurrency()
 {
-#if defined(_TTHREAD_WIN32_)
-  SYSTEM_INFO si;
-  GetSystemInfo(&si);
-  return (int) si.dwNumberOfProcessors;
+#if defined(_WIN32)
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return (int) si.dwNumberOfProcessors;
 #elif defined(_SC_NPROCESSORS_ONLN)
-  return (int) sysconf(_SC_NPROCESSORS_ONLN);
+	return (int) sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(_SC_NPROC_ONLN)
-  return (int) sysconf(_SC_NPROC_ONLN);
+	return (int) sysconf(_SC_NPROC_ONLN);
 #else
-  // The standard requires this function to return zero if the number of
-  // hardware cores could not be determined.
-  return 0;
+	// The standard requires this function to return 1 if the number of
+	// hardware cores could not be determined.
+	return 1;
 #endif
 }
 
@@ -293,7 +293,7 @@ unsigned thread::hardware_concurrency()
 
 thread::id get_id()
 {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_WIN32)
   return thread::id((unsigned long int) GetCurrentThreadId());
 #elif defined(_TTHREAD_POSIX_)
   return _pthread_t_to_ID(pthread_self());
