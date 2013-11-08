@@ -1,0 +1,33 @@
+xdeltalib 当前只在如下平台下编译通过：
+
+    * VS 2008
+    * VS 2010
+    * Redhat Enterprise Server Edition （GCC 4.6.2）
+    * OpenIndiana （GCC 4.4.4）
+    
+相关的编译参数如下：
+
+    * 在 Windows 下，可以使用相应的项目管理文件来编译，可以生成 xdeltalib.dll 库，32 位、64 位均可。
+    * 在 Linux 生成 libxdelta.so 文件，指定如下参数：
+        * 当编译为 32 位版本时，在 make 时加入参数 P=L32，即 make P=L32;
+        * 当编译为 64 位版本时，在 make 时加入参数 P=L64，即 make P=L64;
+        * 库对于 C++11 的支持很有限，但是可以指定 STD=1 来使用一些 C++11 的特性，如果编译器不支持相应的 11 特性，指定这个参数可能会导致编译错误。
+        * 由于在我所用的编译器中 4.6.2 版本中，被安装到了 /usr/local 目录下，因此为了连接正确的库需要加上 -Wl,-rpath,/usr/local/lib(64)。如果没有这种情况，可以不需要这个参数。
+    * 在 OpenIndiana 下生成 libxdelta.so 文件，可指定以下参数：
+        * 当编译为 32 位版本时，在 make 时加入参数 P=L32，即 make P=U32;
+        * 当编译为 64 位版本时，在 make 时加入参数 P=L64，即 make P=U64;
+    * 如果需要编译为 Debug 版本的库，需要在 make 时加入参数 DEBUG=1;
+    
+当没有指定编译目标时，会将库，test-client,test-server 三个目标同时生成，你可以单独指定，如：
+
+    * make xdelta
+    * make test-client
+    * make test-server
+    
+在 OpenIndiana 平台下时，请使用 gmake 来管理项目生成，如：
+
+    * gmake xdelta
+    * gmake test-client
+    * gmake test-server
+    
+    
