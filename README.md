@@ -35,3 +35,21 @@ xdeltalib 的代码协议
 关于 xdeltalib logo
 ====================
 文件 xdelta.png 是 xdeltalib 的专用图标，任何人不得在未经许可的情况下，使用在商业产品中，但是可以用于符合 GPL 协议的源代码或者产品，但是必须说明图标的来源。图标的所有人为项目的作者，即 yeyouqun@163.com。
+
+xdeltalib 概念的澄清
+====================
+在本库中，所使用到的同步模式为：
+
+    1. 如果要将某个源文件的内容同步到目的地，即在目的地上创建一个等待进程;
+    2. 源文件端将所要处理的任务（文件）依次提交到本地的处理线程中，多个线程会依次从提交的任务提取并处理完成。
+    3. 如果处理完成，则源文件端退出，此时，目的地端的进程也会退出。
+    
+因此，我们将这个模式中源文件端称为客户端，而目标等称为服务器端。
+
+关于本库的参考论文：
+====================
+项目参与者可以参考如下论文：
+
+    1. Efficient Algorithms for Sorting and Synchronization，Andrew Tridgell， A thesis submitted for the degree of Doctor of Philosophy at The Australian National University，February 1999。
+    2. In-Place Rsync: File Synchronization for Mobile and Wireless Devices，David Rasch and Randal Burns Department of Computer Science Johns Hopkins University {frasch,randalg}@cs.jhu.edu。
+    3. J. Langford. Multiround Rsync. Technical Report Available at www.cs.cmu.edu/jcl/research/mrsync/-mrsync.ps, Dept. of Computer Science, Carnegie-Mellon University, 2001.
