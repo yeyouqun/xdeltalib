@@ -188,16 +188,6 @@ public:
 	/// @return of -1 means that an error has occurred.
     virtual int32_t Send(const uchar_t *pBuf, int32_t bytesToSend);
 
-    /// Attempts to send at most nNumItem blocks described by sendVector 
-    /// to the socket descriptor associated with the socket object.
-    /// \param sendVector pointer to an array of iovec structures
-    /// \param nNumItems number of items in the vector to process
-    /// <br>\b NOTE: Buffers are processed in the order specified.
-    /// @return number of bytes actually sent, return of zero means the
-    /// connection has been shutdown on the other side, and a return of -1
-    /// means that an error has occurred.
-    virtual int32_t Send(const struct iovec *sendVector, int32_t nNumItems);
-
     /// Returns blocking/non-blocking state of socket.
     /// @return true if the socket is non-blocking, else return false.
     bool IsNonblocking(void) { return (m_bIsBlocking == false); };
@@ -263,22 +253,6 @@ private:
     /// Generic function used to set the send/receive window size
     ///  @return zero on failure else the number of bytes of the TCP window size if successful.
     uint16_t SetWindowSize(uint32_t nOptionName, uint32_t nWindowSize);
-
-
-    /// Attempts to send at most nNumItem blocks described by sendVector 
-    /// to the socket descriptor associated with the socket object.
-    /// \param sendVector pointer to an array of iovec structures
-    /// \param nNumItems number of items in the vector to process
-    /// <br>\b Note: This implementation is for systems that don't natively
-    /// support this functionality.
-    /// @return number of bytes actually sent, return of zero means the
-    /// connection has been shutdown on the other side, and a return of -1
-    /// means that an error has occurred.
-    int32_t Writev(const struct iovec *pVector, size_t nCount);
-
-    /// Flush the socket descriptor owned by the object.
-	/// @return true data was successfully sent, else return false;
-    bool Flush();
 
 	CSimpleSocket *operator=(CSimpleSocket &socket);
 	CSimpleSocket(CSimpleSocket &socket);

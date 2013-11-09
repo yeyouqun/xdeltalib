@@ -49,7 +49,6 @@
 #include "buffer.h"
 #include "passive_socket.h"
 
-
 namespace xdelta {
 
 CPassiveSocket::CPassiveSocket(CSocketType nType) : CSimpleSocket(nType)
@@ -296,7 +295,7 @@ int32_t CPassiveSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
     switch(m_nSocketType)
     {
        case CSimpleSocket::SocketTypeTcp:
-           CSimpleSocket::Send(pBuf, bytesToSend);
+           BytesSent = CSimpleSocket::Send(pBuf, bytesToSend);
            break;
        case CSimpleSocket::SocketTypeTcp6:
            break;

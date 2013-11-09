@@ -48,6 +48,8 @@
 #include "platform.h"
 #include "buffer.h"
 #include "simple_socket.h"
+#include "lz4.h"
+#include "lz4hc.h"
 
 namespace xdelta {
 
@@ -240,96 +242,6 @@ bool CSimpleSocket::Close(void)
 	return bRetVal;
 }
 
-//------------------------------------------------------------------------------
-//
-// Flush()
-//
-//------------------------------------------------------------------------------
-bool CSimpleSocket::Flush()
-{
-    int32_t nTcpNoDelay = 1;
-    int32_t nCurFlags = 0;
-    uchar_t tmpbuf = 0;
-    bool  bRetVal = false;
-
-    //--------------------------------------------------------------------------
-    // Get the current setting of the TCP_NODELAY flag.
-    //--------------------------------------------------------------------------
-    if (GETSOCKOPT(m_socket, IPPROTO_TCP, TCP_NODELAY, &nCurFlags, sizeof(int32_t)) == 0)
-    {
-        //----------------------------------------------------------------------
-        // Set TCP NoDelay flag
-        //----------------------------------------------------------------------
-        if (SETSOCKOPT(m_socket, IPPROTO_TCP, TCP_NODELAY, &nTcpNoDelay, sizeof(int32_t)) == 0)
-        {
-            //------------------------------------------------------------------
-            // Send empty byte stream to flush the TCP send buffer
-            //------------------------------------------------------------------
-            if (Send(&tmpbuf, 0) != CSimpleSocket::SocketError)
-            {
-                bRetVal = true;
-            }
-
-			TranslateSocketError();
-        }
-
-        //----------------------------------------------------------------------
-        // Reset the TCP_NODELAY flag to original state.
-        //----------------------------------------------------------------------
-        SETSOCKOPT(m_socket, IPPROTO_TCP, TCP_NODELAY, &nCurFlags, sizeof(int32_t));
-    }
-
-    return bRetVal;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// Writev -
-//
-//------------------------------------------------------------------------------
-int32_t CSimpleSocket::Writev(const struct iovec *pVector, size_t nCount)
-{
-    int32_t nBytes     = 0;
-    int32_t nBytesSent = 0;
-    int32_t i          = 0;
-
-    //--------------------------------------------------------------------------
-    // Send each buffer as a separate send, windows does not support this
-    // function call.                                                    
-    //--------------------------------------------------------------------------
-    for (i = 0; i < (int32_t)nCount; i++) {
-		nBytes = Send((uchar_t *)pVector[i].iov_base, (int32_t)pVector[i].iov_len);
-        if (nBytes == CSimpleSocket::SocketError)
-            break;
-
-        nBytesSent += nBytes;
-    }
-    
-    if (i > 0)
-        Flush();
-    
-    return nBytesSent;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// Send() - Send data on a valid socket via a vector of buffers.
-//
-//------------------------------------------------------------------------------
-int32_t CSimpleSocket::Send(const struct iovec *sendVector, int32_t nNumItems)
-{
-    SetSocketError(SocketSuccess);
-    int32_t BytesSent = 0;
-
-    if ((BytesSent = WRITEV(m_socket, sendVector, nNumItems)) == CSimpleSocket::SocketError)
-    {
-        TranslateSocketError();
-    }
-
-    return BytesSent;
-}
 //------------------------------------------------------------------------------
 //
 // Receive() - Attempts to receive a block of data on an established		

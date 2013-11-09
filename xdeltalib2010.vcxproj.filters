@@ -69,6 +69,15 @@
     <ClInclude Include="simple_socket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="lz4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4hc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="xxhash.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="digest.cpp">
@@ -114,6 +123,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="simple_socket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4hc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="xxhash.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

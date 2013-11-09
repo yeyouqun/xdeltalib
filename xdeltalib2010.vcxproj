@@ -132,6 +132,8 @@
     <ClInclude Include="digest.h" />
     <ClInclude Include="fast_mutex.h" />
     <ClInclude Include="inplace.h" />
+    <ClInclude Include="lz4.h" />
+    <ClInclude Include="lz4hc.h" />
     <ClInclude Include="multiround.h" />
     <ClInclude Include="mytypes.h" />
     <ClInclude Include="passive_socket.h" />
@@ -145,11 +147,14 @@
     <ClInclude Include="xdeltalib.h" />
     <ClInclude Include="xdelta_client.h" />
     <ClInclude Include="xdelta_server.h" />
+    <ClInclude Include="xxhash.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="active_socket.cpp" />
     <ClCompile Include="digest.cpp" />
     <ClCompile Include="inplace.cpp" />
+    <ClCompile Include="lz4.cpp" />
+    <ClCompile Include="lz4hc.cpp" />
     <ClCompile Include="multiround.cpp" />
     <ClCompile Include="passive_socket.cpp" />
     <ClCompile Include="platform.cpp" />
@@ -162,6 +167,7 @@
     <ClCompile Include="xdeltalib.cpp" />
     <ClCompile Include="xdelta_client.cpp" />
     <ClCompile Include="xdelta_server.cpp" />
+    <ClCompile Include="xxhash.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
