@@ -89,6 +89,15 @@ reconstruct.o:reconstruct.cpp
 	
 multiround.o:multiround.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+
+lz4.o:lz4.cpp
+	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+
+lz4hc.o:lz4hc.cpp
+	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+
+xxhash.o:xxhash.cpp
+	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
 inplace.o:inplace.cpp
 	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
@@ -113,7 +122,7 @@ stream.o:stream.cpp
 	
 xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
 			 rw.o reconstruct.o multiround.o inplace.o simple_socket.o active_socket.o \
-			 passive_socket.o xdelta_server.o xdelta_client.o stream.o
+			 passive_socket.o xdelta_server.o xdelta_client.o stream.o lz4.o lz4hc.o xxhash.o
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
 test-server:xdelta testserver.cpp
