@@ -328,6 +328,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lz4.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lz4hc.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\multiround.cpp"
 				>
 			</File>
@@ -375,6 +383,10 @@
 				RelativePath=".\xdeltalib.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\xxhash.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -399,6 +411,14 @@
 			</File>
 			<File
 				RelativePath=".\inplace.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lz4.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lz4hc.h"
 				>
 			</File>
 			<File
@@ -451,6 +471,10 @@
 			</File>
 			<File
 				RelativePath=".\xdeltalib.h"
+				>
+			</File>
+			<File
+				RelativePath=".\xxhash.h"
 				>
 			</File>
 		</Filter>
