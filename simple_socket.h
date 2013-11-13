@@ -56,7 +56,6 @@
 	#include <netinet/tcp.h>
 	#include <netinet/ip.h>
 	#include <netdb.h>
-#endif
 #ifdef _LINUX
 	#include <linux/if_packet.h>
 	#include <linux/if_packet.h>
@@ -64,11 +63,11 @@
 	#include <linux/if.h>
 	#include <sys/sendfile.h>
 #endif
-#if defined(_LINUX) || defined (_DARWIN) || defined (_UNIX)
 	#include <sys/time.h>
 	#include <sys/uio.h>
 	#include <unistd.h>	
 	#include <fcntl.h>
+
 #elif defined (_WIN32)
 	#include <io.h>
 	#include <winsock2.h>
@@ -90,6 +89,7 @@ namespace xdelta {
   #define INVALID_SOCKET    ~(0)
 #endif
 
+/// \class
 /// Provides a platform independent class to for socket development.
 /// This class is designed to abstract socket communication development in a 
 /// platform independent manner. 
@@ -130,7 +130,11 @@ public:
     } CSocketError;
 
 public:
-    CSimpleSocket(CSocketType type = SocketTypeTcp);
+    /// \brief
+	///  Create a Socket object.
+	/// \param[in] compress	在数据传输过程中，是否需要压缩数据，True 表示需要压缩。
+	/// \param[in] type Socket 对象的类型，当前支持 SocketTypeTcp 及 SocketTypeTcp6。
+    CSimpleSocket(bool compress, CSocketType type = SocketTypeTcp);
 
     virtual ~CSimpleSocket() 
 	{
@@ -174,19 +178,19 @@ public:
     void TranslateSocketError(void);
 
     /// Attempts to receive a block of data on an established connection.	
-    /// \param nMaxBytes maximum number of bytes to receive.
+	/// \param[in] buff	Where to store received data.
+	/// \param[in/out] nMaxBytes maximum number of bytes to receive, and return actually received bytes.
     /// @return number of bytes actually received.
 	/// @return of zero means the connection has been shutdown on the other side.
-	/// @return of -1 means that an error has occurred.
-    virtual int32_t Receive(char_buffer<uchar_t> & buff, int32_t nMaxBytes);
+    virtual int32_t Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes);
 
     /// Attempts to send a block of data on an established connection.
-    /// \param pBuf block of data to be sent.
-    /// \param bytesToSend size of data block to be sent.
-    /// @return number of bytes actually sent.
-	/// @return of zero means the connection has been shutdown on the other side.
-	/// @return of -1 means that an error has occurred.
-    virtual int32_t Send(const uchar_t *pBuf, int32_t bytesToSend);
+	/// \param[in] pBuf block of data to be sent.
+	/// \param[in/out] bytesToSend size of data block to be sent and actually sent bytes returned
+	///					by bytesToSend.
+    /// @return If return true, measn all data has been sent, otherwise return false, actually sent bytes returned
+	///					by bytesToSend.
+    virtual bool Send(const uchar_t *pBuf, int32_t & bytesToSend);
 
     /// Returns blocking/non-blocking state of socket.
     /// @return true if the socket is non-blocking, else return false.
@@ -256,23 +260,36 @@ private:
 
 	CSimpleSocket *operator=(CSimpleSocket &socket);
 	CSimpleSocket(CSimpleSocket &socket);
+    ///  Doing actual send operation
+    /// \param pBuf block of data to be sent.
+    /// \param bytesToSend size of data block to be sent.
+    /// @return number of bytes actually sent.
+	/// @return of zero means the connection has been shutdown on the other side.
+	/// @return of -1 means that an error has occurred.
+	int32_t DoSend (const uchar_t * pBuf, int32_t bytesToSend);
+	bool SendUncompress (const uchar_t *pBuf, int32_t & bytesToSend);
+    ///  Doing actual receive operation
+	/// \param[out] buffer Data where to store the received data.
+	/// \param[in] BytesToReceive size of data block to be received.
+    /// @return number of bytes actually sent.
+	/// @return Bytes received.
+	int32_t DoReceive (char_buffer<uchar_t> & buffer, int32_t BytesToReceive);
 protected:
-    SOCKET               m_socket;            /// socket handle
-    CSocketError         m_socketErrno;       /// number of last error
-    int32_t                m_nSocketDomain;     /// socket type PF_INET, PF_INET6
-    CSocketType          m_nSocketType;       /// socket type - UDP, TCP or RAW
-    bool                 m_bIsBlocking;       /// is socket blocking
-    bool                 m_bIsMulticast;      /// is the UDP socket multicast;
-    struct sockaddr_in   m_stServerSockaddr;  /// server address
-    struct sockaddr_in   m_stClientSockaddr;  /// client address
-    struct sockaddr_in   m_stMulticastGroup;  /// multicast group to bind to
-    struct linger        m_stLinger;          /// linger flag
+    SOCKET               m_socket;            ///< socket handle
+    CSocketError         m_socketErrno;       ///< number of last error
+    int32_t              m_nSocketDomain;     ///< socket type PF_INET, PF_INET6
+    CSocketType          m_nSocketType;       ///< socket type - UDP, TCP or RAW
+    bool                 m_bIsBlocking;       ///< is socket blocking
+	bool				 m_compress_;		  ///< 指示是否需要在传输数据之前进行压缩。
+    struct sockaddr_in   m_stServerSockaddr;  ///< server address
+    struct sockaddr_in   m_stClientSockaddr;  ///< client address
 #ifdef _WIN32
-    WSADATA              m_hWSAData;          /// Windows
+    WSADATA              m_hWSAData;          ///< Windows
 #endif 
-    fd_set               m_writeFds;		  /// write file descriptor set
-    fd_set               m_readFds;		      /// read file descriptor set
-    fd_set               m_errorFds;		  /// error file descriptor set
+    fd_set               m_writeFds;		  ///< write file descriptor set
+    fd_set               m_readFds;		      ///< read file descriptor set
+    fd_set               m_errorFds;		  ///< error file descriptor set
+	char_buffer<uchar_t> m_buffer_;			  ///< 用于缓存数据。
 };
 
 } // namespace xdelta

@@ -473,8 +473,9 @@ static void xdelta_client_task (void * data)
 	client.Close ();
 }
 
-xdelta_client::xdelta_client (uint32_t thread_nr) : client_ ()
+xdelta_client::xdelta_client (bool compress, uint32_t thread_nr) : client_ (compress)
 												, thread_nr_ (thread_nr)
+												, compress_ (compress)
 {
 	task_slot_ = new client_slot_t;
 }
@@ -502,7 +503,7 @@ void xdelta_client::run (file_operator & foperator
 
 	uint32_t thread_nr = thread_nr_;
 	while (thread_nr > 0) {
-		std::auto_ptr<CPassiveSocket> client (new CPassiveSocket ());
+		std::auto_ptr<CPassiveSocket> client (new CPassiveSocket (compress_));
 		init_passive_socket (*client.get (), 0);
 		uint16_t data_port = client->GetServerPort ();
 		data_buff << data_port;

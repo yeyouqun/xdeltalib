@@ -104,13 +104,13 @@ using xdelta::xdelta_server;
 using xdelta::f_local_creator;
 using xdelta::file_operator;
 
-void test_multiround (const std::string & path)
+void test_multiround (const std::string & path, bool compress)
 {
 	my_observer mo;
 	f_local_creator localop (path);
 	file_operator &fop = localop;
 
-	xdelta_server multi;
+	xdelta_server multi (compress);
 	multi.set_multiround_size (5 * 1024 * 1024);
 
 	xdelta::uint64_t start = time (0);
@@ -131,13 +131,13 @@ void test_multiround (const std::string & path)
 			, average);
 }
 
-void test_single_round (const std::string & path)
+void test_single_round (const std::string & path, bool compress)
 {
 	my_observer mo;
 	f_local_creator localop (path);
 	file_operator &fop = localop;
 
-	xdelta_server server;
+	xdelta_server server (compress);
 
 	xdelta::uint64_t start = time (0);
 	server.run (fop, mo);
@@ -157,13 +157,13 @@ void test_single_round (const std::string & path)
 			, average);
 }
 
-void test_inplace_with_single_round (const std::string & path)
+void test_inplace_with_single_round (const std::string & path, bool compress)
 {
 	my_observer mo;
 	f_local_creator localop (path);
 	file_operator &fop = localop;
 
-	xdelta_server server;
+	xdelta_server server (compress);
 	server.set_inplace ();
 
 	xdelta::uint64_t start = time (0);
@@ -186,26 +186,26 @@ void test_inplace_with_single_round (const std::string & path)
 
 int main (int argn, char ** argc)
 {
-	if (argn != 3) {
+	if (argn != 4) {
 		return -1;
 	}
 
 	try {
-
+		bool compress = _stricmp (argc[3], "z") == 0 ? true : false;
 		std::string path = argc[1];
 		if (_stricmp (argc[2], "m") == 0) {
-			test_multiround (path);
+			test_multiround (path, compress);
 		}
 		else if (_stricmp (argc[2], "s") == 0) {
-			test_single_round (path);
+			test_single_round (path, compress);
 		}
 		else if (_stricmp (argc[2], "i") == 0) {
-			test_inplace_with_single_round (path);
+			test_inplace_with_single_round (path, compress);
 		}
 		else if (_stricmp (argc[2], "a") == 0) {
-			test_multiround (path);
-			test_single_round (path);
-			test_inplace_with_single_round (path);
+			test_multiround (path, compress);
+			test_single_round (path, compress);
+			test_inplace_with_single_round (path, compress);
 		}
 		else {
 			printf ("Error test type.\n");
@@ -214,10 +214,14 @@ int main (int argn, char ** argc)
 	}
 	catch (xdelta::xdelta_exception &e) {
 		printf ("%s\n", e.what ());
+#ifdef _WIN32
 		system ("pause");
+#endif
 		return -1;
 	}
 
+#ifdef _WIN32
 	system ("pause");
+#endif
     return 0;
 }

@@ -59,6 +59,7 @@ struct hasher_strcut
 	xdelta_observer *	observer_;
 	uint64_t			auto_multiround_filsize_;
 	bool				inplace_;
+	bool				compress_;
 };
 
 static void xdelta_server_thread (void * data)
@@ -66,8 +67,8 @@ static void xdelta_server_thread (void * data)
 	//
 	// receive hasher request and send data back.
 	//
-	CActiveSocket client;
 	hasher_strcut * phs = (hasher_strcut*)data;
+	CActiveSocket client (phs->compress_);
 	try {
 		init_active_socket (client, (uchar_t*)phs->addr_.c_str (), phs->port_);
 		DEFINE_STACK_BUFFER (buff);
@@ -160,6 +161,7 @@ void xdelta_server::_start_task (file_operator & foperator
 			data->observer_ = &observer;
 			data->auto_multiround_filsize_ = auto_multiround_filsize_;
 			data->inplace_ = inplace_;
+			data->compress_ = compress_;
 			thread * thrd = new thread (xdelta_server_thread, (void *)data.release ());
 			hasher_threads.push_back (thrd);
 		}

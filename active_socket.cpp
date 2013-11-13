@@ -51,10 +51,9 @@
 
 namespace xdelta {
 
-CActiveSocket::CActiveSocket(CSocketType nType) : CSimpleSocket(nType)
+CActiveSocket::CActiveSocket(bool compress, CSocketType nType) : CSimpleSocket(compress, nType)
 {
 }
-
 
 //------------------------------------------------------------------------------
 //

@@ -58,7 +58,7 @@ namespace xdelta {
 /// types. 
 class DLL_EXPORT CPassiveSocket : public CSimpleSocket {
 public:
-    CPassiveSocket(CSocketType type = SocketTypeTcp);
+    CPassiveSocket(bool compress, CSocketType type = SocketTypeTcp);
     virtual ~CPassiveSocket() { Close(); };
 
     /// Extracts the first connection request on the queue of pending 
@@ -88,40 +88,7 @@ public:
     ///      condiitions will be set: CPassiveSocket::SocketAddressInUse, CPassiveSocket::SocketProtocolError, 
     ///      CPassiveSocket::SocketInvalidSocket.  The following socket errors are for Linux/Unix
     ///      derived systems only: CPassiveSocket::SocketInvalidSocketBuffer
-    bool BindMulticast(const uchar_t *pInterface, const uchar_t *pGroup, int16_t nPort);
-
-    /// Create a listening socket at local ip address 'x.x.x.x' or 'localhost'
-    /// if pAddr is NULL on port nPort.
-    /// 
-    ///  \param pAddr specifies the IP address on which to listen.
-    ///  \param nPort specifies the port on which to listen.
-    ///  \param nConnectionBacklog specifies connection queue backlog (default 30,000)
-    ///  @return true if a listening socket was created.  
-    ///      If not successful, the false is returned and one of the following error
-    ///      condiitions will be set: CPassiveSocket::SocketAddressInUse, CPassiveSocket::SocketProtocolError, 
-    ///      CPassiveSocket::SocketInvalidSocket.  The following socket errors are for Linux/Unix
-    ///      derived systems only: CPassiveSocket::SocketInvalidSocketBuffer
     virtual bool Listen(const uchar_t *pAddr, int16_t nPort, int32_t nConnectionBacklog = 30000);
-
-    bool JoinMultiCastGroup();
-
-    /// Attempts to send a block of data on an established connection.
-    /// \param pBuf block of data to be sent.
-    /// \param bytesToSend size of data block to be sent.
-    /// @return number of bytes actually sent, return of zero means the
-    /// connection has been shutdown on the other side, and a return of -1
-    /// means that an error has occurred.  If an error was signaled then one
-    /// of the following error codes will be set: CPassiveSocket::SocketInvalidSocket,
-    /// CPassiveSocket::SocketEwouldblock, SimpleSocket::SocketConnectionReset, 
-    /// CPassiveSocket::SocketInvalidSocketBuffer, CPassiveSocket::SocketInterrupted, 
-    /// CPassiveSocket::SocketProtocolError, CPassiveSocket::SocketNotconnected
-    /// <br>\b Note: This function is used only for a socket of type 
-	/// CSimpleSocket::SocketTypeUdp
-    virtual int32_t Send(const uchar_t *pBuf, int32_t bytesToSend);
-
- private:
-    struct ip_mreq  m_stMulticastRequest;   /// group address for multicast
-
 };
 
 } //namespace xdelta

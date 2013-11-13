@@ -44,24 +44,58 @@
 #include <string.h>
 #include <string>
 
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <errno.h>
+	#include <io.h>
+	#include <share.h>
+	#include <hash_map>
+	#include <functional>
+#else
+    #if !defined (__CXX_11__)
+    	#include <ext/hash_map>
+    #else
+    	#include <unordered_map>
+    #endif
+	#include <sys/types.h>
+    #include <unistd.h>
+    #include <sys/stat.h>
+	#include <fcntl.h>
+	#include <ext/functional>
+	#include <memory.h>
+	#include <stdio.h>
+#endif
+#include <set>
+#include <string>
+#include <iterator>
+#include <list>
+#include <algorithm>
+#include <vector>
+#include <math.h>
+
 #include "mytypes.h"
-#include "platform.h"
+#include "digest.h"
+#include "rw.h"
+#include "rollsum.h"
 #include "buffer.h"
+#include "platform.h"
+#include "xdeltalib.h"
 #include "simple_socket.h"
 #include "lz4.h"
 #include "lz4hc.h"
 
 namespace xdelta {
 
-CSimpleSocket::CSimpleSocket(CSocketType nType) :
+#define MAX_LZBLOCK_LEN LZ4_compressBound (XDELTA_BUFFER_LEN)
+CSimpleSocket::CSimpleSocket(bool compress, CSocketType nType) :
     m_socket(INVALID_SOCKET), 
     m_socketErrno(CSimpleSocket::SocketInvalidSocket), 
     m_nSocketDomain(AF_INET), 
     m_nSocketType(SocketTypeTcp),
-    m_bIsBlocking(true)
+    m_bIsBlocking(true),
+	m_compress_ (compress), 
+	m_buffer_ (MAX_LZBLOCK_LEN + TRANS_BLOCK_LEN)
 {
-    memset(&m_stLinger, 0, sizeof(struct linger));
-
     switch(nType)
     {
 	//----------------------------------------------------------------------
@@ -165,21 +199,15 @@ uint16_t CSimpleSocket::SetWindowSize(uint32_t nOptionName, uint32_t nWindowSize
     return (uint16_t)nWindowSize;
 }
 
-
-
-//------------------------------------------------------------------------------
-//
-// Send() - Send data on a valid socket
-//
-//------------------------------------------------------------------------------
-int32_t CSimpleSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
+int32_t CSimpleSocket::DoSend (const uchar_t * pBuf, int32_t bytesToSend)
 {
-    SetSocketError(SocketSuccess);
+#define DEFAULT_SEND_BLOCK (1024*1024)
+	SetSocketError(SocketSuccess);
     int32_t BytesSent = 0;
 
 	while (bytesToSend > 0) {
 		if (IsSocketValid() && (bytesToSend > 0) && (pBuf != NULL)) {
-			int32_t block2sent = bytesToSend > (1024*1024) ? (1024*1024) : bytesToSend;
+			int32_t block2sent = bytesToSend > DEFAULT_SEND_BLOCK ? DEFAULT_SEND_BLOCK : bytesToSend;
 			switch(m_nSocketType)
 			{
 				case CSimpleSocket::SocketTypeTcp:
@@ -211,8 +239,55 @@ int32_t CSimpleSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
 			}
 		}
 	}
+	return BytesSent;
+}
 
-    return BytesSent;
+bool CSimpleSocket::SendUncompress (const uchar_t *pBuf, int32_t & bytesToSend)
+{
+	trans_block_header header;
+	// 以未压缩的方式发送。
+	header.compressed = BT_UNCOMPRESSED;
+	header.comp_blk_size = header.blk_len = bytesToSend;
+
+	m_buffer_ << header;
+	int32_t bytes = DoSend (m_buffer_.rd_ptr (), TRANS_BLOCK_LEN);
+	bytes += DoSend (pBuf, bytesToSend);
+	int32_t origin_bytes = bytesToSend;
+	bytesToSend = bytes;
+
+	if (bytes == origin_bytes + TRANS_BLOCK_LEN)
+		return true;
+
+	return false;
+}
+//------------------------------------------------------------------------------
+//
+// Send() - Send data on a valid socket
+//
+//------------------------------------------------------------------------------
+bool CSimpleSocket::Send(const uchar_t *pBuf, int32_t & bytesToSend)
+{
+	m_buffer_.reset ();
+	if (m_compress_) 
+		return SendUncompress (pBuf, bytesToSend);
+
+	int32_t res = LZ4_compressHC ((char*)pBuf, (char*)m_buffer_.begin () + TRANS_BLOCK_LEN, bytesToSend);
+	if (res == 0)
+		// 压缩失败后，只以未压缩的方式发送。
+		return SendUncompress (pBuf, bytesToSend);
+	
+	trans_block_header header;
+	header.compressed = BT_COMPRESSED;
+	header.blk_len = bytesToSend;
+	header.comp_blk_size = res;
+	m_buffer_ << header;
+
+	int32_t bytes = DoSend (m_buffer_.begin (), res + TRANS_BLOCK_LEN);
+	bytesToSend = bytes;
+	if (bytes == res + TRANS_BLOCK_LEN)
+		return true;
+
+	return false;
 }
 
 
@@ -242,29 +317,17 @@ bool CSimpleSocket::Close(void)
 	return bRetVal;
 }
 
-//------------------------------------------------------------------------------
-//
-// Receive() - Attempts to receive a block of data on an established		
-//			   connection.	Data is received in an internal buffer managed	
-//			   by the class.  This buffer is only valid until the next call	
-//			   to Receive(), a call to Close(), or until the object goes out
-//			   of scope.													
-//																			
-//------------------------------------------------------------------------------
-int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t nMaxBytes)
+int32_t CSimpleSocket::DoReceive (char_buffer<uchar_t> & buffer, int32_t BytesToReceive)
 {
-    int32_t BytesReceived = 0;
     //--------------------------------------------------------------------------
     // If the socket is invalid then return false.
     //--------------------------------------------------------------------------
     if (IsSocketValid() == false)
-    {
-        return BytesReceived;
-    }
+        return 0;
 
     SetSocketError(SocketSuccess);
-
-	while (nMaxBytes > 0 && Select ()) {
+	int32_t BytesReceived = 0;
+	while (BytesToReceive > 0 && Select ()) {
 		switch (m_nSocketType) {
 			//----------------------------------------------------------------------
 			// If zero bytes are received, then return.  If SocketERROR is 
@@ -272,11 +335,11 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t nMaxBytes)
 			//----------------------------------------------------------------------
 			case CSimpleSocket::SocketTypeTcp:
 			{
-				int32_t bytes = RECV(m_socket, buff.wr_ptr (), nMaxBytes, 0);
+				int32_t bytes = RECV(m_socket, buffer.wr_ptr (), BytesToReceive, 0);
 				if (bytes > 0) {
-					buff.wr_ptr (bytes);
+					buffer.wr_ptr (bytes);
 					BytesReceived += bytes;
-					nMaxBytes -= bytes;
+					BytesToReceive -= bytes;
 				}
 				else {
 					TranslateSocketError();
@@ -294,6 +357,84 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t nMaxBytes)
 	}
 
     return BytesReceived;
+}
+//------------------------------------------------------------------------------
+//
+// Receive() - Attempts to receive a block of data on an established		
+//			   connection.	Data is received in an internal buffer managed	
+//			   by the class.  This buffer is only valid until the next call	
+//			   to Receive(), a call to Close(), or until the object goes out
+//			   of scope.													
+//																			
+//------------------------------------------------------------------------------
+int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes)
+{
+	int32_t bytes_returned = nMaxBytes;
+	nMaxBytes = 0;
+	if ((int32_t)m_buffer_.data_bytes () >= nMaxBytes) {
+		buff.copy (m_buffer_.rd_ptr (), nMaxBytes);
+		m_buffer_.rd_ptr (nMaxBytes);
+		return bytes_returned;
+	}
+
+	int32_t remain = m_buffer_.data_bytes ();
+	memmove (m_buffer_.begin (), m_buffer_.rd_ptr (), remain);
+	m_buffer_.reset ();
+	m_buffer_.wr_ptr (remain);
+
+	DEFINE_STACK_BUFFER (buffer);
+	int32_t BytesReceived = DoReceive (buffer, TRANS_BLOCK_LEN);
+	if (BytesReceived != TRANS_BLOCK_LEN) {
+		if (BytesReceived > 0) nMaxBytes += BytesReceived;
+		return 0;
+	}
+
+	nMaxBytes += TRANS_BLOCK_LEN;
+	trans_block_header header;
+	buffer >> header;
+	if (header.compressed == BT_UNCOMPRESSED) {
+		BytesReceived = DoReceive (m_buffer_, header.blk_len);
+		if (BytesReceived != header.blk_len) {
+			if (BytesReceived > 0) nMaxBytes += BytesReceived;
+			return 0;
+		}
+		nMaxBytes += BytesReceived;
+	}
+	else if (header.compressed == BT_COMPRESSED) {
+		char_buffer<uchar_t> tmp (header.comp_blk_size);
+		BytesReceived = DoReceive (tmp, header.comp_blk_size);
+		if (BytesReceived != header.comp_blk_size) {
+			if (BytesReceived > 0) nMaxBytes += BytesReceived;
+			return 0;
+		}
+
+		nMaxBytes += BytesReceived;
+		int res = LZ4_decompress_safe ((char*)tmp.begin (), (char*)m_buffer_.wr_ptr ()
+								, header.comp_blk_size, m_buffer_.available ());
+		if (res <= 0) {
+			std::string errmsg = fmt_string ("Error data format when decomressed.");
+			THROW_XDELTA_EXCEPTION (errmsg);
+		}
+
+		if (res != header.blk_len) {
+			std::string errmsg = fmt_string ("Error data format when decomressed, length is not correct.");
+			THROW_XDELTA_EXCEPTION (errmsg);
+		}
+		m_buffer_.wr_ptr (res);
+	}
+	else {
+		std::string errmsg = fmt_string ("Error data format, should be BT_UNCOMPRESSED/BT_COMPRESSED.");
+		THROW_XDELTA_EXCEPTION (errmsg);
+	}
+
+	if ((int32_t)m_buffer_.data_bytes () < nMaxBytes) {
+		std::string errmsg = fmt_string ("Not enough data to read.");
+		THROW_XDELTA_EXCEPTION (errmsg);
+	}
+
+	buff.copy (m_buffer_.rd_ptr (), nMaxBytes);
+	m_buffer_.rd_ptr (nMaxBytes);
+	return bytes_returned;
 }
 
 //------------------------------------------------------------------------------
@@ -492,31 +633,25 @@ bool CSimpleSocket::Select(int32_t nTimeoutSec, int32_t nTimeoutUSec)
     }
     
     nNumDescriptors = SELECT(m_socket+1, &m_readFds, &m_writeFds, &m_errorFds, pTimeout);
-//    nNumDescriptors = SELECT(m_socket+1, &m_readFds, NULL, NULL, pTimeout);
+	// nNumDescriptors = SELECT(m_socket+1, &m_readFds, NULL, NULL, pTimeout);
     
     //----------------------------------------------------------------------
     // Handle timeout
     //----------------------------------------------------------------------
-    if (nNumDescriptors == 0) 
-    {
+	if (nNumDescriptors == 0) {
         SetSocketError(CSimpleSocket::SocketTimedout);
-    }
+	}
     //----------------------------------------------------------------------
     // If a file descriptor (read/write) is set then check the
     // socket error (SO_ERROR) to see if there is a pending error.
     //----------------------------------------------------------------------
-    else if ((FD_ISSET(m_socket, &m_readFds)) || (FD_ISSET(m_socket, &m_writeFds)))
-    {
+    else if ((FD_ISSET(m_socket, &m_readFds)) || (FD_ISSET(m_socket, &m_writeFds))) {
         int32_t nLen = sizeof(nError);
         
-        if (GETSOCKOPT(m_socket, SOL_SOCKET, SO_ERROR, &nError, &nLen) == 0)
-        {
+        if (GETSOCKOPT(m_socket, SOL_SOCKET, SO_ERROR, &nError, &nLen) == 0) {
             errno = nError;
-            
             if (nError == 0)
-            {
                 bRetVal = true;
-            }
         }
         
         TranslateSocketError();

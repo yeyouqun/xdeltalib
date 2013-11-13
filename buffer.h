@@ -326,6 +326,7 @@ struct block_header
 	uint32_t	blk_len;		///< 块长度。
 };
 
+
 /// \fn char_buffer<char_type> & operator << (char_buffer<char_type> & buff, const block_header & var)
 /// \brief 将对象变量流化到 buff 中。
 /// \param[in] buff char_buff 对象。
@@ -347,6 +348,45 @@ inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, bloc
 {
 	return buff >> var.blk_type >> var.blk_len;
 }
+
+/// 以下两个块类型，只用于指示块是否被压缩。
+#define BT_COMPRESSED			'\1'
+#define BT_UNCOMPRESSED			'\0'
+/// \struct
+/// \brief 数据传送的块头格式
+struct trans_block_header
+{
+#define TRANS_BLOCK_LEN 9
+	uchar_t		compressed;		///< 块是否压缩，如果压缩则为 0xff，否则为 0x0。
+	uint32_t	blk_len;		///< 原始块长度。
+	uint32_t	comp_blk_size;	///< 压缩之后的块长度，有的数据块没有压缩，其值与 blk_len 一致。
+};
+
+/// \fn char_buffer<char_type> & operator << (char_buffer<char_type> & buff, const trans_block_header & var)
+/// \brief 将对象变量流化到 buff 中。
+/// \param[in] buff char_buff 对象。
+/// \param[in] var  变量值。
+/// \return buff char_buff 的引用。
+template <typename char_type>
+inline char_buffer<char_type> & operator << (char_buffer<char_type> & buff, const trans_block_header & var)
+{
+	*buff.wr_ptr () = var.compressed;
+	buff.wr_ptr (1);
+	return buff << var.blk_len << var.comp_blk_size;
+}
+
+/// \fn char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, trans_block_header & var)
+/// \brief 将对象变量反流化到 buff 中。
+/// \param[in] buff char_buff 对象。
+/// \param[in] var  变量值。
+/// \return buff char_buff 的引用。
+template <typename char_type>
+inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, trans_block_header & var)
+{
+	var.compressed = *buff.rd_ptr ();
+	return buff >> var.blk_len >> var.comp_blk_size;
+}
+
 
 template <typename char_type>
 inline char_buffer<char_type> & operator << (char_buffer<char_type> & buff, int32_t var)
@@ -386,6 +426,9 @@ inline char_buffer<char_type> &	operator >> (char_buffer<char_type> & buff, int6
 	return buff;
 }
 
+/// \def STACK_BUFF_LEN
+/// 栈缓存空间大小，应该保持尽量小，同时又满足一次数据块头的读取。
+#define STACK_BUFF_LEN 1024
 /// \def DEFINE_STACK_BUFFER(name)
 /// 定义一个在栈上的缓冲区，STACK_BUFF_LEN 不能太大。
 #define DEFINE_STACK_BUFFER(name)								\

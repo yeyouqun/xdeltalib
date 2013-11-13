@@ -10,9 +10,6 @@ namespace xdelta {
 /// \def XDELTA_ADDR
 /// 本地服务地址
 #define XDELTA_ADDR "127.0.0.1"
-/// \def STACK_BUFF_LEN
-/// 栈缓存空间大小，应该保持尽量小，同时又满足一次数据块头的读取。
-#define STACK_BUFF_LEN 1024
 /// \def NO_MULTI_ROUND_FILSIZE
 /// 默认多轮 Hash 的文件尺寸大小，一般不会有文件超过这个大小，因此指定这个参数时，所有文件都只执行单轮 Hash。
 #define NO_MULTI_ROUND_FILSIZE ((uint64_t)(-1))
@@ -77,7 +74,7 @@ class DLL_EXPORT xdelta_server
 	CPassiveSocket server_;					///<	服务器 Socket 对象。
 	uint64_t		auto_multiround_filsize_;///<	多轮 Hash 的边界值。
 	bool			inplace_;				///<	采用就地构造文件的方式同步。多轮 Hash 与就地构造不能同时出现。
-
+	bool			compress_;				///< 对数据传输是否需要压缩。
 	void _start_task (file_operator & foperator
 					, xdelta_observer & observer
 					, uint16_t port);
@@ -86,10 +83,11 @@ public:
 	// @auto_multiround_filsize if file's size excess this size
 	// will used multiround xdelta.
 	//
-	xdelta_server () 
-		: server_ ()
+	xdelta_server (bool compress) 
+		: server_ (compress)
 		, auto_multiround_filsize_ (NO_MULTI_ROUND_FILSIZE)
 		, inplace_ (false)
+		, compress_ (compress)
 	{
 		// less than this size will cause no difference with single round.
 		if (MULTIROUND_MAX_BLOCK_SIZE > auto_multiround_filsize_)
@@ -129,7 +127,7 @@ void init_active_socket (CActiveSocket & active, const uchar_t * addr, uint16_t 
 
 inline void read_block (char_buffer<uchar_t> & buff
 						, CSimpleSocket & client
-						, uint32_t len
+						, int32_t len
 						, xdelta_observer & observer)
 {
 	if (len == 0)
@@ -154,10 +152,9 @@ inline block_header read_block_header (CSimpleSocket & client, xdelta_observer &
 
 inline void send_block (CSimpleSocket & socket, char_buffer<uchar_t> & data, xdelta_observer & observer)
 {
-	uint32_t tbytes = data.data_bytes ();
+	int32_t tbytes = data.data_bytes ();
 	if (tbytes > 0) {
-		uint32_t nbytes = socket.Send (data.rd_ptr (), tbytes);
-		if (nbytes != tbytes) {
+		if (!socket.Send (data.rd_ptr (), tbytes)) {
 			std::string errmsg = fmt_string ("Send data to client failed.");
 			THROW_XDELTA_EXCEPTION (errmsg);
 		}

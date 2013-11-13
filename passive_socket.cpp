@@ -44,6 +44,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <memory>
+
 #include "mytypes.h"
 #include "platform.h"
 #include "buffer.h"
@@ -51,78 +53,8 @@
 
 namespace xdelta {
 
-CPassiveSocket::CPassiveSocket(CSocketType nType) : CSimpleSocket(nType)
+CPassiveSocket::CPassiveSocket(bool compress, CSocketType nType) : CSimpleSocket(compress, nType)
 {
-}
-
-bool CPassiveSocket::BindMulticast(const uchar_t *pInterface, const uchar_t *pGroup, int16_t nPort)
-{
-    bool		   bRetVal = false;
-#ifdef _WIN32
-    ULONG          inAddr;
-#else
-    in_addr_t      inAddr;
-#endif
-
-    //--------------------------------------------------------------------------
-    // Set the following socket option SO_REUSEADDR.  This will allow the file
-    // descriptor to be reused immediately after the socket is closed instead
-    // of setting in a TIMED_WAIT state.
-    //--------------------------------------------------------------------------
-    memset(&m_stMulticastGroup,0,sizeof(m_stMulticastGroup));
-    m_stMulticastGroup.sin_family = AF_INET;
-    m_stMulticastGroup.sin_port = htons(nPort);
-    
-    //--------------------------------------------------------------------------
-    // If no IP Address (interface ethn) is supplied, or the loop back is 
-    // specified then bind to any interface, else bind to specified interface.
-    //--------------------------------------------------------------------------
-    if ((pInterface == NULL) || (!strlen((const char *)pInterface)))
-    {
-        m_stMulticastGroup.sin_addr.s_addr = htonl(INADDR_ANY);
-    }
-    else
-    {
-        if ((inAddr = inet_addr((const char *)pInterface)) != INADDR_NONE)
-        {
-            m_stMulticastGroup.sin_addr.s_addr = inAddr;
-        }
-    }
-    
-    //----------------------------------------------------------------------
-    // Specify the multicast group and bind the specified interface.
-    //----------------------------------------------------------------------
-    m_stMulticastRequest.imr_multiaddr.s_addr = inet_addr((const char *)pGroup);
-    m_stMulticastRequest.imr_interface.s_addr = m_stMulticastGroup.sin_addr.s_addr;
-
-    //--------------------------------------------------------------------------
-    // Bind to the specified port 
-    //--------------------------------------------------------------------------
-    if (bind(m_socket, (struct sockaddr *)&m_stMulticastGroup, sizeof(m_stMulticastGroup)) == 0)
-    {
-        //----------------------------------------------------------------------
-        // Join the multicast group
-        //----------------------------------------------------------------------
-        if (SETSOCKOPT(m_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, 
-                       (void *)&m_stMulticastRequest,
-                       sizeof(m_stMulticastRequest)) == CSimpleSocket::SocketSuccess)
-        {
-            bRetVal = true;
-        }
-    }
-
-    //--------------------------------------------------------------------------
-    // If there was a socket error then close the socket to clean out the 
-    // connection in the backlog.
-    //--------------------------------------------------------------------------
-    TranslateSocketError();
-
-    if (bRetVal == false)
-    {
-        Close();
-    }
-
-    return bRetVal;
 }
 
 //------------------------------------------------------------------------------
@@ -216,95 +148,53 @@ bool CPassiveSocket::Listen(const uchar_t *pAddr, int16_t nPort, int32_t nConnec
 CActiveSocket *CPassiveSocket::Accept(uint32_t timeout_sec)
 {
     uint32_t         nSockLen;
-    CActiveSocket *pClientSocket = NULL;
+	std::auto_ptr<CActiveSocket> ClientSocket;
     SOCKET         socket = CSimpleSocket::SocketError;
 
-    if (m_nSocketType != CSimpleSocket::SocketTypeTcp)
-    {
+    if (m_nSocketType != CSimpleSocket::SocketTypeTcp) {
         SetSocketError(CSimpleSocket::SocketProtocolError);
-        return pClientSocket;
+        return 0;
     }
 
-    pClientSocket = new CActiveSocket();
+    ClientSocket.reset (new CActiveSocket(m_compress_, m_nSocketType));
 
     //--------------------------------------------------------------------------
     // Wait for incoming connection.
     //--------------------------------------------------------------------------
-    if (pClientSocket != NULL)
-    {
-        CSocketError socketErrno = SocketSuccess;
+    CSocketError socketErrno = SocketSuccess;
+    nSockLen = sizeof(m_stClientSockaddr);
+    do {
+        errno = 0;
+		if (!Select (timeout_sec, 0))
+			return 0;
 
-        nSockLen = sizeof(m_stClientSockaddr);
-        
-        do
-        {
-            errno = 0;
-			if (!Select (timeout_sec, 0)) {
-				delete pClientSocket;
-	            pClientSocket = NULL;
-				return 0;
-			}
-			
-			socket = accept(m_socket, (struct sockaddr *)&m_stClientSockaddr, (socklen_t *)&nSockLen);
-            if (socket != -1)
-            {
-                pClientSocket->SetSocketHandle(socket);
-                pClientSocket->TranslateSocketError();
-                socketErrno = pClientSocket->GetSocketError();
-                socklen_t nSockLen = sizeof(struct sockaddr);
+		socket = accept(m_socket, (struct sockaddr *)&m_stClientSockaddr, (socklen_t *)&nSockLen);
+        if (socket != -1) {
+            ClientSocket->SetSocketHandle(socket);
+            ClientSocket->TranslateSocketError();
+            socketErrno = ClientSocket->GetSocketError();
+            socklen_t nSockLen = sizeof(struct sockaddr);
 
-                //-------------------------------------------------------------
-                // Store client and server IP and port information for this
-                // connection.
-                //-------------------------------------------------------------
-                getpeername(m_socket, (struct sockaddr *)&pClientSocket->m_stClientSockaddr, &nSockLen);
-                memcpy((void *)&pClientSocket->m_stClientSockaddr, (void *)&m_stClientSockaddr, nSockLen);
+            //-------------------------------------------------------------
+            // Store client and server IP and port information for this
+            // connection.
+            //-------------------------------------------------------------
+            getpeername(m_socket, (struct sockaddr *)&ClientSocket->m_stClientSockaddr, &nSockLen);
+            memcpy((void *)&ClientSocket->m_stClientSockaddr, (void *)&m_stClientSockaddr, nSockLen);
 
-                memset(&pClientSocket->m_stServerSockaddr, 0, nSockLen);
-                getsockname(m_socket, (struct sockaddr *)&pClientSocket->m_stServerSockaddr, &nSockLen);
-            }
-            else
-            {
-                TranslateSocketError();
-                socketErrno = GetSocketError();
-            }
-
-        } while (socketErrno == CSimpleSocket::SocketInterrupted);
-        
-        if (socketErrno != CSimpleSocket::SocketSuccess)
-        {
-            delete pClientSocket;
-            pClientSocket = NULL;
+            memset(&ClientSocket->m_stServerSockaddr, 0, nSockLen);
+            getsockname(m_socket, (struct sockaddr *)&ClientSocket->m_stServerSockaddr, &nSockLen);
         }
-    }
+        else {
+            TranslateSocketError();
+            socketErrno = GetSocketError();
+        }
+    } while (socketErrno == CSimpleSocket::SocketInterrupted);
+    
+    if (socketErrno != CSimpleSocket::SocketSuccess)
+		return 0;
 
-    return pClientSocket;
-}
-
-
-//------------------------------------------------------------------------------
-//
-// Send() - Send data on a valid socket
-//
-//------------------------------------------------------------------------------
-int32_t CPassiveSocket::Send(const uchar_t *pBuf, int32_t bytesToSend)
-{
-    SetSocketError(SocketSuccess);
-    int32_t BytesSent = 0;
-
-    switch(m_nSocketType)
-    {
-       case CSimpleSocket::SocketTypeTcp:
-           BytesSent = CSimpleSocket::Send(pBuf, bytesToSend);
-           break;
-       case CSimpleSocket::SocketTypeTcp6:
-           break;
-       default:
-           SetSocketError(SocketProtocolError);
-           break;
-    }
-
-    return BytesSent;
+	return ClientSocket.release ();
 }
 
 } // namespace xdelta

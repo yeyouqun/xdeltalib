@@ -14,8 +14,9 @@ class DLL_EXPORT xdelta_client
 	CActiveSocket			client_;		///< 本端对象
 	client_slot_t		*	task_slot_;		///< 任务槽
 	uint32_t				thread_nr_;		///< 当前线程数。
+	bool					compress_;		///< 对数据传输是否需要压缩。
 public:
-	xdelta_client (uint32_t thread_nr = 0);
+	xdelta_client (bool compress, uint32_t thread_nr = 0);
 	~xdelta_client ();
 	/// \brief
 	/// 开户任务执行。

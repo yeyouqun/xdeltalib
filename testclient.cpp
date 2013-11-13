@@ -26,6 +26,7 @@
     #endif
     #include <memory.h>
     #include <unistd.h>
+	#define _stricmp strcasecmp
 #endif
 #include <algorithm>
 #include <typeinfo>
@@ -178,13 +179,14 @@ void traverse_source (const std::string & pathname
 
 int main (int argn, char ** argc)
 {
-	if (argn != 2) {
+	if (argn != 3) {
 		return -1;
 	}
 
 	try {
 		source_observer ob;
-		xdelta::xdelta_client client;
+		bool compress = _stricmp (argc[2], "z") == 0 ? true : false;
+		xdelta::xdelta_client client (compress);
 
 		xdelta::uint64_t start = time (0);
 		std::string path (argc[1]);
@@ -201,10 +203,13 @@ int main (int argn, char ** argc)
 	}
 	catch (xdelta::xdelta_exception &e) {
 		printf ("%s\n", e.what ());
+#ifdef _WIN32
 		system ("pause");
+#endif
 		return -1;
 	}
-
+#ifdef _WIN32
 	system ("pause");
+#endif
     return 0;
 }

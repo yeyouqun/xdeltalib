@@ -60,7 +60,7 @@ class DLL_EXPORT CActiveSocket : public CSimpleSocket {
 public:
     friend class CPassiveSocket;
 
-    CActiveSocket(CSocketType type = SocketTypeTcp);
+    CActiveSocket(bool compress, CSocketType type = SocketTypeTcp);
     virtual ~CActiveSocket() { Close(); };
 
     /// Established a connection to the address specified by pAddr.  
