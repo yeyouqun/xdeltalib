@@ -4,8 +4,14 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xdeltalib", "xdeltalib.vcproj", "{217362D9-69DA-41FB-9465-E2AD66A483C9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient\testclient.vcproj", "{A8EE7212-3077-40D0-A45F-DA3106E2E57B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{217362D9-69DA-41FB-9465-E2AD66A483C9} = {217362D9-69DA-41FB-9465-E2AD66A483C9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testserver", "testserver\testserver.vcproj", "{42B7D641-2DFE-4669-9AB9-F3A9B25069D0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{217362D9-69DA-41FB-9465-E2AD66A483C9} = {217362D9-69DA-41FB-9465-E2AD66A483C9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
