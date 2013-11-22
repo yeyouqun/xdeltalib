@@ -290,6 +290,7 @@ protected:
     fd_set               m_readFds;		      ///< read file descriptor set
     fd_set               m_errorFds;		  ///< error file descriptor set
 	char_buffer<uchar_t> m_buffer_;			  ///< 用于缓存数据。
+	char_buffer<uchar_t> m_decompress_buff_;  ///< 用于接收数据时的解压缩缓存。
 };
 
 } // namespace xdelta

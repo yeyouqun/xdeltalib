@@ -203,11 +203,34 @@ public:
 /// 在单轮 Hash 中的最大块长度
 #define MAX_XDELTA_BLOCK_BYTES ((int32_t)1 << 17) //128KB
 
-/// 在多轮 Hash 中的最大块长度
-#define MULTIROUND_MAX_BLOCK_SIZE (1 << 22)
+/// 在一些内存受限系统中，如果下面的参数定义得很多，有可能导致内存耗用过多，使系统
+/// 运行受到影响，甚至是宕机，所以，当你需要你的目标系统的内存特性后，请你自己定义相应的
+/// 的大小。不过建议 MULTIROUND_MAX_BLOCK_SIZE 不要小于 512 KB，XDELTA_BUFFER_LEN 必须大于
+/// MULTIROUND_MAX_BLOCK_SIZE，最好为 2 的 N 次方倍，如 8 倍 等。
+/// 当你的系统中存在大量内存时，较大的内存可以优化实现。使用库同步数据时，软件系统最多占用内存
+/// 的大概为：
+///		在数据源端（客户端）：
+///			线程数 * XDELTA_BUFFER_LEN * 3，如果系统内存受限，你可以采用少线程的方式进行处理方式，
+///			但是你无法使用多线程的优势。
+///		在数据目标端（服务端）：
+///			线程数 * XDELTA_BUFFER_LEN * 2，但是线程数量受到并发的客户端的数目以及每客户端在同步数据时
+///			采用的线程数。
+/// 由于在同步时，如果文件大小或者块大小，没有达到 XDELTA_BUFFER_LEN 长度，则未被使用的地址系统不会分配
+/// 物理内存，因此有时只会占用进程的地址空间，但却不会占用系统的物理内存。
 
-/// 库中使用缓存长度
-#define XDELTA_BUFFER_LEN ((int32_t)1 << 25) // 32MB
+#ifndef MEMORY_LIMIT
+	/// 在多轮 Hash 中的最大块长度
+	#define MULTIROUND_MAX_BLOCK_SIZE (1 << 22)
+
+	/// 库中使用缓存长度
+	#define XDELTA_BUFFER_LEN ((int32_t)1 << 25) // 32MB
+#else
+	/// 在多轮 Hash 中的最大块长度
+	#define MULTIROUND_MAX_BLOCK_SIZE (1 << 20)
+
+	/// 库中使用缓存长度
+	#define XDELTA_BUFFER_LEN ((int32_t)1 << 23) // 8MB
+#endif
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
     

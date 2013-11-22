@@ -86,7 +86,7 @@
 
 namespace xdelta {
 
-#define MAX_LZBLOCK_LEN LZ4_compressBound (XDELTA_BUFFER_LEN)
+#define MAX_LZ4_BLOCK_LEN LZ4_compressBound (XDELTA_BUFFER_LEN)
 CSimpleSocket::CSimpleSocket(bool compress, CSocketType nType) :
     m_socket(INVALID_SOCKET), 
     m_socketErrno(CSimpleSocket::SocketInvalidSocket), 
@@ -94,7 +94,9 @@ CSimpleSocket::CSimpleSocket(bool compress, CSocketType nType) :
     m_nSocketType(SocketTypeTcp),
     m_bIsBlocking(true),
 	m_compress_ (compress), 
-	m_buffer_ (MAX_LZBLOCK_LEN + TRANS_BLOCK_LEN)
+	m_buffer_ (MAX_LZ4_BLOCK_LEN + TRANS_BLOCK_LEN), // 发送缓存，由于最大的块，不超过 XDELTA_BUFFER_LEN
+													// ，加上块头，是全部长度。
+	m_decompress_buff_ (XDELTA_BUFFER_LEN + TRANS_BLOCK_LEN)	// 解压缩的块最长不会超过 XDELTA_BUFFER_LEN
 {
     switch(nType)
     {
@@ -393,7 +395,8 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes)
 	trans_block_header header;
 	buffer >> header;
 	if (header.compressed == BT_UNCOMPRESSED) {
-		BytesReceived = DoReceive (m_buffer_, header.blk_len);
+		m_decompress_buff_.reset ();
+		BytesReceived = DoReceive (m_decompress_buff_, header.blk_len);
 		if (BytesReceived != header.blk_len) {
 			if (BytesReceived > 0) nMaxBytes += BytesReceived;
 			return 0;
@@ -401,15 +404,16 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes)
 		nMaxBytes += BytesReceived;
 	}
 	else if (header.compressed == BT_COMPRESSED) {
-		char_buffer<uchar_t> tmp (header.comp_blk_size);
-		BytesReceived = DoReceive (tmp, header.comp_blk_size);
+		m_buffer_.reset ();
+		m_decompress_buff_.reset ();
+		BytesReceived = DoReceive (m_buffer_, header.comp_blk_size);
 		if (BytesReceived != header.comp_blk_size) {
 			if (BytesReceived > 0) nMaxBytes += BytesReceived;
 			return 0;
 		}
 
 		nMaxBytes += BytesReceived;
-		int res = LZ4_decompress_safe ((char*)tmp.begin (), (char*)m_buffer_.wr_ptr ()
+		int res = LZ4_decompress_safe ((char*)m_buffer_.begin (), (char*)m_decompress_buff_.wr_ptr ()
 								, header.comp_blk_size, m_buffer_.available ());
 		if (res <= 0) {
 			std::string errmsg = fmt_string ("Error data format when decomressed.");
