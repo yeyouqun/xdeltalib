@@ -94,9 +94,8 @@ CSimpleSocket::CSimpleSocket(bool compress, CSocketType nType) :
     m_nSocketType(SocketTypeTcp),
     m_bIsBlocking(true),
 	m_compress_ (compress), 
-	m_buffer_ (MAX_LZ4_BLOCK_LEN + TRANS_BLOCK_LEN), // 发送缓存，由于最大的块，不超过 XDELTA_BUFFER_LEN
-													// ，加上块头，是全部长度。
-	m_decompress_buff_ (XDELTA_BUFFER_LEN + TRANS_BLOCK_LEN)	// 解压缩的块最长不会超过 XDELTA_BUFFER_LEN
+	m_buffer_ (MAX_LZ4_BLOCK_LEN + TRANS_BLOCK_LEN), // 发送(接收)缓存，由于最大的块，不超过 XDELTA_BUFFER_LEN
+	m_decompress_buff_ (XDELTA_BUFFER_LEN)
 {
     switch(nType)
     {
@@ -274,9 +273,10 @@ bool CSimpleSocket::Send(const uchar_t *pBuf, int32_t & bytesToSend)
 		return SendUncompress (pBuf, bytesToSend);
 
 	int32_t res = LZ4_compressHC ((char*)pBuf, (char*)m_buffer_.begin () + TRANS_BLOCK_LEN, bytesToSend);
-	if (res == 0)
-		// 压缩失败后，只以未压缩的方式发送。
-		return SendUncompress (pBuf, bytesToSend);
+	if (res == 0) {
+		std::string errmsg = fmt_string ("Can't compress data.");
+		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
+	}
 	
 	trans_block_header header;
 	header.compressed = BT_COMPRESSED;
@@ -373,71 +373,66 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes)
 {
 	int32_t bytes_returned = nMaxBytes;
 	nMaxBytes = 0;
-	if ((int32_t)m_buffer_.data_bytes () >= nMaxBytes) {
-		buff.copy (m_buffer_.rd_ptr (), nMaxBytes);
-		m_buffer_.rd_ptr (nMaxBytes);
+	if ((int32_t)m_decompress_buff_.data_bytes () >= bytes_returned) {
+		buff.copy (m_decompress_buff_.rd_ptr (), bytes_returned);
+		m_decompress_buff_.rd_ptr (bytes_returned);
 		return bytes_returned;
 	}
 
-	int32_t remain = m_buffer_.data_bytes ();
-	memmove (m_buffer_.begin (), m_buffer_.rd_ptr (), remain);
-	m_buffer_.reset ();
-	m_buffer_.wr_ptr (remain);
-
-	DEFINE_STACK_BUFFER (buffer);
-	int32_t BytesReceived = DoReceive (buffer, TRANS_BLOCK_LEN);
-	if (BytesReceived != TRANS_BLOCK_LEN) {
-		if (BytesReceived > 0) nMaxBytes += BytesReceived;
-		return 0;
+	int32_t bytes2add = bytes_returned;
+	if (m_decompress_buff_.data_bytes () > 0) {
+		buff.copy (m_decompress_buff_.rd_ptr (), m_decompress_buff_.data_bytes ());
+		bytes2add -= m_decompress_buff_.data_bytes ();
 	}
+	
+	m_buffer_.reset ();
+	m_decompress_buff_.reset ();
+
+	int32_t BytesReceived = DoReceive (m_buffer_, TRANS_BLOCK_LEN);
+	if (BytesReceived != TRANS_BLOCK_LEN) 
+		return 0;
 
 	nMaxBytes += TRANS_BLOCK_LEN;
 	trans_block_header header;
-	buffer >> header;
+	m_buffer_ >> header;
 	if (header.compressed == BT_UNCOMPRESSED) {
-		m_decompress_buff_.reset ();
 		BytesReceived = DoReceive (m_decompress_buff_, header.blk_len);
-		if (BytesReceived != header.blk_len) {
-			if (BytesReceived > 0) nMaxBytes += BytesReceived;
+		if (BytesReceived != header.blk_len)
 			return 0;
-		}
 		nMaxBytes += BytesReceived;
 	}
 	else if (header.compressed == BT_COMPRESSED) {
 		m_buffer_.reset ();
-		m_decompress_buff_.reset ();
 		BytesReceived = DoReceive (m_buffer_, header.comp_blk_size);
-		if (BytesReceived != header.comp_blk_size) {
-			if (BytesReceived > 0) nMaxBytes += BytesReceived;
+		if (BytesReceived != header.comp_blk_size)
 			return 0;
-		}
 
 		nMaxBytes += BytesReceived;
-		int res = LZ4_decompress_safe ((char*)m_buffer_.begin (), (char*)m_decompress_buff_.wr_ptr ()
+		int res = LZ4_decompress_safe ((char*)m_buffer_.begin (), (char*)m_decompress_buff_.wr_ptr () /*begin()*/
 								, header.comp_blk_size, m_buffer_.available ());
 		if (res <= 0) {
 			std::string errmsg = fmt_string ("Error data format when decomressed.");
-			THROW_XDELTA_EXCEPTION (errmsg);
+			THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 		}
 
 		if (res != header.blk_len) {
 			std::string errmsg = fmt_string ("Error data format when decomressed, length is not correct.");
-			THROW_XDELTA_EXCEPTION (errmsg);
+			THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 		}
-		m_buffer_.wr_ptr (res);
+		m_decompress_buff_.wr_ptr (res);
 	}
 	else {
 		std::string errmsg = fmt_string ("Error data format, should be BT_UNCOMPRESSED/BT_COMPRESSED.");
-		THROW_XDELTA_EXCEPTION (errmsg);
+		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
 
-	if ((int32_t)m_buffer_.data_bytes () < nMaxBytes) {
+	if ((int32_t)m_decompress_buff_.data_bytes () < bytes2add) {
 		std::string errmsg = fmt_string ("Not enough data to read.");
-		THROW_XDELTA_EXCEPTION (errmsg);
+		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
 
-	buff.copy (m_buffer_.rd_ptr (), nMaxBytes);
-	m_buffer_.rd_ptr (nMaxBytes);
+	buff.copy (m_decompress_buff_.rd_ptr (), bytes2add);
+	m_decompress_buff_.rd_ptr (bytes2add);
 	return bytes_returned;
 }
 
