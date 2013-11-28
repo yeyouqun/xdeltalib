@@ -384,6 +384,7 @@ template <typename char_type>
 inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, trans_block_header & var)
 {
 	var.compressed = *buff.rd_ptr ();
+	buff.rd_ptr (1);
 	return buff >> var.blk_len >> var.comp_blk_size;
 }
 

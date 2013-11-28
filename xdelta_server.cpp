@@ -258,7 +258,9 @@ void buffer_or_send (CSimpleSocket & socket
 	}
 	else {
 		send_block (socket, stream_buff, observer);
+		stream_buff.reset ();
 		send_block (socket, data_buff, observer);
+		data_buff.reset ();
 	}
 }
 

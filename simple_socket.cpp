@@ -269,7 +269,7 @@ bool CSimpleSocket::SendUncompress (const uchar_t *pBuf, int32_t & bytesToSend)
 bool CSimpleSocket::Send(const uchar_t *pBuf, int32_t & bytesToSend)
 {
 	m_buffer_.reset ();
-	if (m_compress_) 
+	if (!m_compress_) 
 		return SendUncompress (pBuf, bytesToSend);
 
 	int32_t res = LZ4_compressHC ((char*)pBuf, (char*)m_buffer_.begin () + TRANS_BLOCK_LEN, bytesToSend);
@@ -408,8 +408,10 @@ int32_t CSimpleSocket::Receive(char_buffer<uchar_t> & buff, int32_t & nMaxBytes)
 			return 0;
 
 		nMaxBytes += BytesReceived;
-		int res = LZ4_decompress_safe ((char*)m_buffer_.begin (), (char*)m_decompress_buff_.wr_ptr () /*begin()*/
-								, header.comp_blk_size, m_buffer_.available ());
+		int res = LZ4_decompress_safe ((char*)m_buffer_.begin ()
+									, (char*)m_decompress_buff_.wr_ptr () /*begin()*/
+									, header.comp_blk_size
+									, m_decompress_buff_.available ());
 		if (res <= 0) {
 			std::string errmsg = fmt_string ("Error data format when decomressed.");
 			THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);

@@ -131,7 +131,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="../xdeltalib.lib"
-				OutputFile="$(ProjectName).exe"
+				OutputFile="../$(ProjectName).exe"
 				GenerateDebugInformation="true"
 				TargetMachine="17"
 			/>
@@ -274,7 +274,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="../xdeltalib.lib"
-				OutputFile="$(ProjectName).exe"
+				OutputFile="../$(ProjectName).exe"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

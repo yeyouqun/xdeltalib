@@ -319,7 +319,7 @@ xdelta_hash_table::xdelta_hash_table (const hash_table & table
 								, file_reader & reader
 								, const int f_blk_len)
 						: hash_table_ (table)
-						, reader_ (reader_)
+						, reader_ (reader)
 						, f_blk_len_ (f_blk_len)
 {
 }
