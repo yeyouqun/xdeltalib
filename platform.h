@@ -68,17 +68,6 @@ std::string get_tmp_fname (const std::string & fname);
 #else
 #define SEPERATOR "/"
 #endif
-
-#ifndef htonll
-#ifdef _BIG_ENDIAN
-#define htonll(x)   (x)
-#define ntohll(x)   (x)
-#else
-#define htonll(x)   ((((uint64)htonl(x)) << 32) + htonl(x >> 32))
-#define ntohll(x)   ((((uint64)ntohl(x)) << 32) + ntohl(x >> 32))
-#endif
-#endif
-
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
 /* Socket Macros                                                             */
