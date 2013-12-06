@@ -139,10 +139,7 @@ void multiround_hasher_stream::end_hash_stream (const uchar_t file_hash[DIGEST_B
 		hole_t hole = *begin;
 		while (hole.length != 0) {
 			uint32_t bytes_to_read = (uint32_t)hole.length;
-			if (bytes_to_read > XDELTA_BUFFER_LEN) {
-				bytes_to_read = XDELTA_BUFFER_LEN;
-			}
-
+			bytes_to_read = bytes_to_read > XDELTA_BUFFER_LEN ? XDELTA_BUFFER_LEN : bytes_to_read;
 			uint32_t bytes_read = seek_and_read (reader_
 												, hole.offset
 												, bytes_to_read

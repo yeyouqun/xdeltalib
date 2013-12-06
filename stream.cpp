@@ -84,7 +84,7 @@ void tcp_hasher_stream::start_hash_stream (const std::string & fname, const int3
 	
 	block_header header;
 	header.blk_type = BT_HASH_BEGIN_BLOCK;
-	header.blk_len = (uint32_t)(data_buff_.wr_ptr () - data_buff_.rd_ptr ());
+	header.blk_len = (uint32_t)data_buff_.data_bytes ();
 
 	header_buff_.reset ();
 	header_buff_ << header;
@@ -102,7 +102,7 @@ void tcp_hasher_stream::add_block (const uint32_t fhash, const slow_hash & shash
 	
 	block_header header;
 	header.blk_type = BT_HASH_BLOCK;
-	header.blk_len = (uint32_t)(data_buff_.wr_ptr () - data_buff_.rd_ptr ());
+	header.blk_len = (uint32_t)data_buff_.data_bytes ();
 
 	header_buff_.reset ();
 	header_buff_ << header;
@@ -200,8 +200,6 @@ void tcp_hasher_stream::_receive_construct_data (reconstructor & reconst)
 
 void tcp_hasher_stream::_reconstruct_it ()
 {
-	char_buffer<uchar_t> buff (XDELTA_BUFFER_LEN); // largest block won't eccess XDELTA_BUFFER_LEN;
-
 	block_header header = read_block_header (client_, observer_);
 	if (header.blk_type != BT_XDELTA_BEGIN_BLOCK) {
 		std::string errmsg = fmt_string ("Error data format(not BT_XDELTA_BEGIN_BLOCK).");
