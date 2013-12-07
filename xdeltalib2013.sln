@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xdeltalib", "xdeltalib2012.vcxproj", "{A14D6B67-C10D-4996-87C5-0925E6A94CBA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xdeltalib", "xdeltalib2013.vcxproj", "{A14D6B67-C10D-4996-87C5-0925E6A94CBA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testclient", "testclient\testclient2012.vcxproj", "{D928228C-CB02-4879-9E73-E103B1D34947}"
 	ProjectSection(ProjectDependencies) = postProject

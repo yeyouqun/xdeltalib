@@ -3,6 +3,7 @@
 /* Socket.h - Passive Socket Decleration.                                    */
 /*                                                                           */
 /* Author : Mark Carrier (mark@carrierlabs.com)                              */
+/* Modified by yeyouqun (yeyouqun@163.com) to implement xdeltalib's needs.	 */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
 /* Copyright (c) 2007-2009 CarrierLabs, LLC.  All rights reserved.

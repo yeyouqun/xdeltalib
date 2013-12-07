@@ -191,7 +191,7 @@ public:
 	/// \return 没有返回
 	virtual void on_error (const std::string & errmsg, const int errorno) = 0;
 	/// \brief
-	/// 大多轮 Hash 中设置目标文件洞对象。
+	/// 在多轮 Hash 中设置目标文件洞对象。
 	/// \param[in] holeset		文件洞集合对像。
 	/// \return 没有返回
 	virtual void set_holes (std::set<hole_t> * holeset) = 0;

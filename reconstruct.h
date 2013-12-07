@@ -25,13 +25,13 @@ public:
 	{}
 	virtual ~reconstructor () {}
 	/// \brief
-	/// 指示开始处理文件的 Hash 流
+	/// 指示开始处理文件的 Hash 流或者数据流。
 	/// \param fname[in] 文件名，带相对路径
 	/// \param blk_len[in]	处理文件的块长度
 	/// \return 没有返回
 	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len);
 	/// \brief
-	/// 输出一个相同块的块信息记录
+	/// 输出一个相同块的块信息记录，向文件构造一个相同的数据块。
 	/// \param[in] tpos		块在目标文件中的位置信息。
 	/// \param[in] blk_len	块长度。
 	/// \param[in] s_offset	相同块在源文件中的位置偏移。
@@ -40,14 +40,16 @@ public:
 							, const uint32_t blk_len
 							, const uint64_t s_offset);
 	/// \brief
-	/// 输出一个差异的块数据到流中。
+	/// 输出一个差异的块数据到文件中。
 	/// \param[in] data		差异数据块指针。
 	/// \param[in] blk_len	数据块长度。
 	/// \param[in] s_offset	数据块在源文件中的位置偏移。
 	/// \return 没有返回
-	virtual void add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t s_offset);
+	virtual void add_block(const uchar_t * data
+							, const uint32_t blk_len
+							, const uint64_t s_offset);
 	/// \brief
-	/// 指示结束一个文件的 Hash 流的处理。
+	/// 指示结束一个文件的数据流的处理。
 	/// \param[in] filsize		源文件的大小。
 	/// \return 没有返回
 	virtual void end_hash_stream (const uint64_t filsize);
