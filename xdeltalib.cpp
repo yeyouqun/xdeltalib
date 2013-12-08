@@ -211,7 +211,7 @@ void multiround_hash_table::hash_it (file_reader & reader, hasher_stream & strea
 {
 	std::set<hole_t> holes;
 	stream.set_holes (&holes);
-	int32_t blk_len = _haser_first_round (reader, stream, holes);
+	int32_t blk_len = _hasher_first_round(reader, stream, holes);
 	//
 	// -1, means file is equal, so
 	// no need to goto the next round. 
@@ -232,7 +232,7 @@ void multiround_hash_table::hash_it (file_reader & reader, hasher_stream & strea
 }
 
 
-int32_t multiround_hash_table::_haser_first_round (file_reader & reader
+int32_t multiround_hash_table::_hasher_first_round(file_reader & reader
 										, hasher_stream & stream
 										, std::set<hole_t> & holes) const
 {
