@@ -531,10 +531,11 @@ uint32_t get_xdelta_block_size (const uint64_t filesize)
 		i_blk_size = XDELTA_BLOCK_SIZE;
 	else if (i_blk_size > MAX_XDELTA_BLOCK_BYTES)
 		i_blk_size = MAX_XDELTA_BLOCK_BYTES;
-	else
+	else {
 		/// 尽量使块大小与文件大小对齐，这样最后一块的的数据剩下的就少，可以稍微增大
 		/// 在源端传送相同数据块的可能，从而减少数据传输量。
 		i_blk_size += (uint32_t)((i_blk_size % filesize) / (filesize / i_blk_size));
+	}
 
 	return i_blk_size;
 }
