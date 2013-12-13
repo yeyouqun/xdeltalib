@@ -344,131 +344,90 @@ void read_and_delta (file_reader & reader
 
 	for (it_t begin = hole_set.begin (); begin != hole_set.end (); ++begin) {
 		const hole_t & hole = *begin;
-		uint64_t offset = reader.seek_file (hole.offset, FILE_BEGIN);
+		uint64_t offset = reader.seek_file(hole.offset, FILE_BEGIN);
 		if (offset != hole.offset) {
-			std::string errmsg = fmt_string ("Can't seek file %s(%s)."
-				, reader.get_fname ().c_str (), error_msg ().c_str ());
-			THROW_XDELTA_EXCEPTION (errmsg);
+			std::string errmsg = fmt_string("Can't seek file %s(%s)."
+				, reader.get_fname().c_str(), error_msg().c_str());
+			THROW_XDELTA_EXCEPTION(errmsg);
 		}
 
-		uint32_t buflen = XDELTA_BUFFER_LEN;
 		uint32_t to_read_bytes = (uint32_t)hole.length;
+		uchar_t * rdbuf = buf.begin();
+		uchar_t * endbuf = rdbuf, *sentrybuf = rdbuf;
 
-		buflen = to_read_bytes > buflen ? buflen : to_read_bytes;
-		uchar_t * rdbuf = buf.begin ();
-
-		uint32_t size = reader.read_file (rdbuf, buflen);
-		if (size != buflen) {
-			std::string errmsg = fmt_string ("Can't read file %s(%s)."
-				, reader.get_fname ().c_str (), error_msg ().c_str ());
-			THROW_XDELTA_EXCEPTION (errmsg);
-		}
-
-		to_read_bytes -= size;
-		const uchar_t * endbuf = rdbuf + size;
-		rdbuf = buf.begin ();
-
-		if ((int32_t)(endbuf - rdbuf) >= blk_len) {
-			uchar_t * sentrybuf = rdbuf;
-			rolling_hasher hasher;
-			hasher.eat_hash (rdbuf, blk_len);
-
-			while (true) {
-				bool newhash = false;
-				const slow_hash * bsh = hashes.find_block (hasher.hash_value (), rdbuf, blk_len);
-				uchar_t outchar = 0;
-
-				if (bsh) {
-					// a match was found.
-					uint32_t slipsize = (uint32_t)(rdbuf - sentrybuf);
+		rolling_hasher hasher;
+		bool newhash = true;
+		int32_t remain = 0;
+		uchar_t outchar = 0;
+		while (true) {
+			if (remain < blk_len) {
+				if (to_read_bytes == 0) {
+					uint32_t slipsize = (uint32_t)(endbuf - sentrybuf);
 					if (slipsize > 0 && adddiff)
-						stream.add_block (sentrybuf, slipsize, offset);
-
-					offset += slipsize;
-
-					stream.add_block (bsh->tpos, blk_len, offset);
-					if (need_split_hole) {
-						hole_t newhole;
-						newhole.offset = offset;
-						newhole.length = blk_len;
-						holes2remove.push_back (newhole);
-					}
-
-					rdbuf += blk_len;
-					sentrybuf = rdbuf;
-					newhash = true;
-					offset += blk_len;
+						stream.add_block(sentrybuf, slipsize, offset);
+					break;
 				}
 				else {
-					// slip the window by one bytes which size is blk_len.
-					outchar = *rdbuf;
-					++rdbuf;
-				}
+					if (remain > 0)
+						memmove(buf.begin(), rdbuf, remain);
 
-				//
-				// beyond the buffer.
-				int remain = (int)(endbuf - rdbuf);
-				if (remain < blk_len) {
-					if (to_read_bytes == 0) {
-						// no more to read.
-						uint32_t slipsize = (uint32_t)(endbuf - sentrybuf);
-						if (slipsize > 0 && adddiff)
-							stream.add_block (sentrybuf, slipsize, offset);
-						goto end;
+					sentrybuf = buf.begin();
+					uint32_t buflen = XDELTA_BUFFER_LEN - remain;
+					buflen = to_read_bytes > buflen ? buflen : to_read_bytes;
+					uint32_t size = reader.read_file(sentrybuf + remain, buflen);
+
+					if (size != buflen) {
+						std::string errmsg = fmt_string("Can't read file %s(%s)."
+							, reader.get_fname().c_str(), error_msg().c_str());
+						THROW_XDELTA_EXCEPTION(errmsg);
 					}
-					else {
-						memmove (buf.begin (), rdbuf, remain);
-						rdbuf = buf.begin ();
-						sentrybuf = rdbuf;
 
-						buflen = XDELTA_BUFFER_LEN - remain;
-						buflen = to_read_bytes > buflen ? buflen : to_read_bytes;
-						size = reader.read_file (rdbuf + remain, buflen);
-
-						if (size != buflen) {
-							std::string errmsg = fmt_string ("Can't read file %s(%s)."
-								, reader.get_fname ().c_str (), error_msg ().c_str ());
-							THROW_XDELTA_EXCEPTION (errmsg);
-						}
-
-						to_read_bytes -= size;
-						endbuf = rdbuf + remain + size;
-						remain += size;
-
-						if (remain >= blk_len) {
-							if (newhash)
-								hasher.eat_hash (rdbuf, blk_len);
-							else
-								hasher.update (outchar, *(rdbuf + blk_len));
-						}
-						else {
-							//
-							// one read must complement data which length plus
-							// remain must be more than one block length of @f_blk_len,
-							// so if remain less than that, it must be reach the end of
-							// file
-							//
-							if (adddiff)
-								stream.add_block (rdbuf, remain, offset);
-							offset += remain;
-							goto end;
-						}
-					}
-				}
-				else {
-					if (newhash)
-						hasher.eat_hash (rdbuf, blk_len);
-					else
-						hasher.update (outchar, *(rdbuf + blk_len - 1));
+					to_read_bytes -= size;
+					endbuf = sentrybuf + remain + size;
+					rdbuf = sentrybuf;
+					remain += size;
+					continue;
 				}
 			}
+			else {
+				if (newhash) {
+					hasher.eat_hash(rdbuf, blk_len);
+					newhash = false;
+				}
+				else
+					hasher.update(outchar, *(rdbuf + blk_len - 1));
+			}
+
+			const slow_hash * bsh = hashes.find_block(hasher.hash_value(), rdbuf, blk_len);
+			if (bsh) {
+				// a match was found.
+				uint32_t slipsize = (uint32_t)(rdbuf - sentrybuf);
+				if (slipsize > 0 && adddiff)
+					stream.add_block(sentrybuf, slipsize, offset);
+
+				offset += slipsize;
+				remain -= slipsize;
+
+				stream.add_block(bsh->tpos, blk_len, offset);
+				if (need_split_hole) {
+					hole_t newhole;
+					newhole.offset = offset;
+					newhole.length = blk_len;
+					holes2remove.push_back(newhole);
+				}
+
+				rdbuf += blk_len;
+				offset += blk_len;
+				remain -= blk_len;
+				sentrybuf = rdbuf;
+				newhash = true;
+			}
+			else {
+				// slip the window by one bytes which size is blk_len.
+				outchar = *rdbuf++;
+				--remain;
+			}
 		}
-		else {
-			if (adddiff)
-				stream.add_block (rdbuf, size, offset);
-		}
-end:
-		continue;
 	}
 
 	if (need_split_hole) {
