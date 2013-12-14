@@ -87,13 +87,9 @@ std::string get_tmp_fname (const std::string & fname)
 		return fname + "-" + (tmp + 2);
 	return fname + "-" + tmp;
 #else
-	do {
-		char * tmp = "XXXXXX";
-		tmp = mktemp (tmp); 
-		if (strlen (tmp) != 0)
-			return fname + "-" + tmp;
-	} while (1);
-
+	char tmparray [] = "/tmp/-XXXXXX";
+	mkstemp (tmparray); 
+	return fname + basename (tmparray);
 #endif
 }
 

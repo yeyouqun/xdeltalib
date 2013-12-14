@@ -368,6 +368,13 @@ void read_and_delta (file_reader & reader
 					break;
 				}
 				else {
+					uint32_t slipsize = (uint32_t)(rdbuf - sentrybuf);
+					if (slipsize > 0) {
+						if (adddiff)
+							stream.add_block(sentrybuf, slipsize, offset);
+						offset += slipsize;
+					}
+
 					if (remain > 0)
 						memmove(buf.begin(), rdbuf, remain);
 
@@ -398,15 +405,17 @@ void read_and_delta (file_reader & reader
 					hasher.update(outchar, *(rdbuf + blk_len - 1));
 			}
 
-			const slow_hash * bsh = hashes.find_block(hasher.hash_value(), rdbuf, blk_len);
+			const slow_hash * bsh = hashes.find_block(hasher.hash_value()
+													, rdbuf, blk_len);
 			if (bsh) {
 				// a match was found.
 				uint32_t slipsize = (uint32_t)(rdbuf - sentrybuf);
-				if (slipsize > 0 && adddiff)
-					stream.add_block(sentrybuf, slipsize, offset);
+				if (slipsize > 0) {
+					if (adddiff)
+						stream.add_block(sentrybuf, slipsize, offset);
 
-				offset += slipsize;
-				remain -= slipsize;
+					offset += slipsize;
+				}
 
 				stream.add_block(bsh->tpos, blk_len, offset);
 				if (need_split_hole) {
