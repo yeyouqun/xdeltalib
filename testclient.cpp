@@ -48,22 +48,49 @@
 
 class source_observer : public xdelta::xdelta_observer
 {
+	struct file_stat {
+		std::string			fname_;
+		xdelta::uint64_t	same_block_nr_;
+		xdelta::uint64_t	same_block_bytes_;
+		xdelta::uint64_t	diff_block_nr_;
+		xdelta::uint64_t	diff_block_bytes_;
+		xdelta::uint64_t	recv_bytes_;
+		xdelta::uint64_t	send_bytes_;
+		void init() {
+			fname_.clear ();
+			same_block_nr_ = same_block_bytes_ = diff_block_nr_ =
+				diff_block_bytes_ = recv_bytes_ = send_bytes_ = 0;
+		}
+	};
+
 public:
 	virtual void start_hash_stream (const std::string & fname, const xdelta::int32_t blk_len)
 	{
+		stat_.init();
 		files_nr_++;
+		stat_.fname_ = fname;
 	}
 	virtual void add_block (xdelta::uint32_t fhash, const xdelta::slow_hash & shash)
 	{
 	}
 	virtual void end_first_round ()
-	{ 
+	{
+		std::cout << "end first round ...\n";
 	}
-	virtual void next_round (const xdelta::int32_t blk_len) {}
-	virtual void end_one_round () {}
+	virtual void next_round (const xdelta::int32_t blk_len)
+	{
+		std::cout << "next round ...\n";
+	}
+	virtual void end_one_round ()
+	{
+		std::cout << "end one round ...\n";
+	}
 	virtual void end_hash_stream (const xdelta::uint64_t filesize)
 	{
 		tfilsize_ += filesize;
+		printf("file:%s, same block bytes/nr:[%lld,%lld], diff block bytes/nr:[%lld, %lld]\n",
+			stat_.fname_.c_str(), stat_.same_block_bytes_, stat_.same_block_nr_
+			, stat_.diff_block_bytes_, stat_.diff_block_nr_);
 	}
 	void on_error (const std::string & errmsg, const int errorno)
 	{
@@ -72,21 +99,38 @@ public:
 	virtual void bytes_send (const xdelta::uint32_t bytes)
 	{
 		send_bytes_ += bytes;
+		stat_.send_bytes_ += bytes;
 	}
 
 	virtual void bytes_recv (const xdelta::uint32_t bytes)
 	{
 		recv_bytes_ += bytes;
+		stat_.recv_bytes_ += bytes;
+	}
+	virtual void on_equal_block(const xdelta::uint32_t blk_len
+		, const xdelta::uint64_t s_offset)
+	{
+		stat_.same_block_bytes_ += blk_len;
+		stat_.same_block_nr_++;
+	}
+	virtual void on_diff_block(const xdelta::uint32_t blk_len)
+	{
+		stat_.diff_block_bytes_ += blk_len;
+		stat_.diff_block_nr_++;
 	}
 	xdelta::uint64_t	recv_bytes_;
 	xdelta::uint64_t	send_bytes_;
-	int			files_nr_;
 	xdelta::uint64_t	tfilsize_;
+	int					files_nr_;
+	file_stat			stat_;
+
 	source_observer () : recv_bytes_ (0)
 					, send_bytes_ (0)
 					, files_nr_ (0)
 					, tfilsize_ (0)
-	{}
+	{
+		stat_.init();
+	}
 };
 
 struct my_deletor : public xdelta::deletor

@@ -185,13 +185,16 @@ void tcp_hasher_stream::_receive_construct_data (reconstructor & reconst)
 				uint64_t s_offset;
 				stream_buff_ >> tpos.index >> tpos.t_offset >> blk_len >> s_offset;
 				reconst.add_block (tpos, blk_len, s_offset);
+				observer_.on_equal_block (blk_len, s_offset);
 			}
 			else if (header.blk_type == BT_DIFF_BLOCK) {
 				assert (header.blk_len != 0);
 				read_block (stream_buff_, client_, header.blk_len, observer_);
 				uint64_t s_offset;
 				stream_buff_ >> s_offset;
-				reconst.add_block (stream_buff_.rd_ptr (), header.blk_len - sizeof (s_offset), s_offset);
+				uint32_t blk_len = (uint32_t)(header.blk_len - sizeof (s_offset));
+				reconst.add_block(stream_buff_.rd_ptr(), blk_len, s_offset);
+				observer_.on_diff_block(blk_len);
 			}
 			else if (header.blk_type == BT_XDELTA_END_BLOCK) {
 				assert (header.blk_len != 0);
@@ -268,7 +271,9 @@ void multiround_tcp_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTE
 			read_block (stream_buff_, client_, header.blk_len, observer_);
 			uint64_t s_offset;
 			stream_buff_ >> s_offset;
-			reconst_.add_block (stream_buff_.rd_ptr (), header.blk_len - sizeof (uint64_t), s_offset);
+			uint32_t blk_len = (uint32_t)(header.blk_len - sizeof (uint64_t));
+			reconst_.add_block(stream_buff_.rd_ptr(), blk_len, s_offset);
+			observer_.on_diff_block(blk_len);
 		}
 		else if (header.blk_type == BT_XDELTA_END_BLOCK) {
 			assert (header.blk_len != 0);
@@ -312,6 +317,7 @@ bool multiround_tcp_stream::_receive_equal_node ()
 			uint64_t s_offset;
 			data_buff_ >> tpos.index >> tpos.t_offset >> blk_len >> s_offset;
 			reconst_.add_block (tpos, blk_len, s_offset);
+			observer_.on_equal_block(blk_len, s_offset);
 		}
 		else if (header.blk_type == BT_END_ONE_ROUND) {
 			if (header.blk_len != 0) {

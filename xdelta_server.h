@@ -78,6 +78,18 @@ public:
 	/// \param[in] bytes		字节数。
 	/// \return 没有返回
 	virtual void bytes_recv (const uint32_t bytes) = 0;
+	/// \brief
+	/// 指示输出了一个相同的块
+	/// \param[in] blk_len	块长度。
+	/// \param[in] s_offset	相同块在源文件中的位置偏移。
+	/// \return 没有返回
+	virtual void on_equal_block(const uint32_t blk_len
+								, const uint64_t s_offset) = 0;
+	/// \brief
+	/// 指示输出了一个差异块
+	/// \param[in] blk_len	数据块长度。
+	/// \return 没有返回
+	virtual void on_diff_block (const uint32_t blk_len) = 0;
 };
 
 

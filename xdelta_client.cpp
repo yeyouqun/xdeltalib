@@ -138,7 +138,10 @@ class tcp_xdelta_stream : public xdelta_stream
 							, const uint32_t blk_len
 							, const uint64_t s_offset);
 	virtual void add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t offset);
-	virtual void next_round (const int32_t blk_len) {}
+	virtual void next_round (const int32_t blk_len) 
+	{
+		observer_.next_round(blk_len);
+	}
 	virtual void end_one_round ();
 	virtual void set_holes (std::set<hole_t> * holeset) {}
 	virtual void end_hash_stream (const uint64_t filsize);
@@ -173,6 +176,7 @@ void tcp_xdelta_stream::add_block (const target_pos & tpos
 						, const uint32_t blk_len
 						, const uint64_t s_offset)
 {
+	observer_.on_equal_block(blk_len, s_offset);
 	block_header header;
 	header.blk_type = BT_EQUAL_BLOCK;
 	header.blk_len = 0;
@@ -188,6 +192,7 @@ void tcp_xdelta_stream::add_block (const target_pos & tpos
 
 void tcp_xdelta_stream::add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t offset)
 {
+	observer_.on_diff_block(blk_len);
 	block_header header;
 	header.blk_type = BT_DIFF_BLOCK;
 	header.blk_len = 0;
