@@ -35,13 +35,12 @@ class tcp_hasher_stream : public hasher_stream
 protected:
 	virtual void on_error (const std::string & errmsg, const int errorno);
 	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len);
-	void _streamize ();
+	void _streamize (char_buffer<uchar_t> & buff, bool now = false);
 	void _end_one_stage (uint16_t endtype, const uchar_t file_hash[DIGEST_BYTES]);
 	void _receive_construct_data (reconstructor & reconst);
 
 	CActiveSocket		&	client_;			///< 服务端网络对象。
 	char_buffer<uchar_t>	header_buff_;		///< 块头缓冲。
-	char_buffer<uchar_t>	data_buff_;			///< 数据缓冲。
 	char_buffer<uchar_t>	stream_buff_;		///< 流化缓存，所有的数据先缓存在本缓冲中，满发送或者结束发送。
 	xdelta_observer &		observer_;			///< 同步观察器。
 	file_operator &			fop_;				///< 文件操作对象。

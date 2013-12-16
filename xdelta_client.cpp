@@ -150,26 +150,34 @@ private:
 	CSimpleSocket & client_;
 	xdelta_observer & observer_;
 	char_buffer<uchar_t> header_buff_;
-	char_buffer<uchar_t> data_buff_;
 	char_buffer<uchar_t> stream_buff_; // used to buffer header and data.
 public:
 	tcp_xdelta_stream (CSimpleSocket & client, xdelta_observer & observer)
 		: client_ (client)
 		, observer_ (observer)
 		, header_buff_ (STACK_BUFF_LEN)
-		, data_buff_ (STACK_BUFF_LEN)
 		, stream_buff_ (2*1024*1024)
 	{}
 };
 
+#define BEGINE_HEADER(buff)			\
+	buff.reset();					\
+	buff.wr_ptr (BLOCK_HEAD_LEN);	\
+	uchar_t * ptr = buff.wr_ptr()
+
+#define END_HEADER(buff,type)	do {				\
+		block_header header;							\
+		header.blk_type = type;							\
+		header.blk_len = (uint32_t)((buff).wr_ptr () - ptr);	\
+		char_buffer<uchar_t> tmp (buff.begin (), STACK_BUFF_LEN); \
+		tmp << header; \
+	}while (0)
+
 void tcp_xdelta_stream::start_hash_stream (const std::string & fname, const int32_t blk_len)
 {
-	block_header header;
-	header.blk_type = BT_XDELTA_BEGIN_BLOCK;
-	header.blk_len = 0;
-	data_buff_.reset ();
-	header_buff_ << header;
-	buffer_or_send (client_, stream_buff_, header_buff_, data_buff_, observer_);
+	BEGINE_HEADER (header_buff_);
+	END_HEADER (header_buff_, BT_XDELTA_BEGIN_BLOCK);
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_);
 }
 
 void tcp_xdelta_stream::add_block (const target_pos & tpos
@@ -177,69 +185,45 @@ void tcp_xdelta_stream::add_block (const target_pos & tpos
 						, const uint64_t s_offset)
 {
 	observer_.on_equal_block(blk_len, s_offset);
-	block_header header;
-	header.blk_type = BT_EQUAL_BLOCK;
-	header.blk_len = 0;
-	header_buff_.reset ();
-
-	data_buff_.reset ();
-	data_buff_ << tpos.index << tpos.t_offset << blk_len << s_offset;
-	header.blk_len = data_buff_.data_bytes ();
-	header_buff_ << header;
-
-	buffer_or_send (client_, stream_buff_, header_buff_, data_buff_, observer_);
+	BEGINE_HEADER (header_buff_);
+	header_buff_ << tpos.index << tpos.t_offset << blk_len << s_offset;
+	END_HEADER (header_buff_, BT_EQUAL_BLOCK);
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_);
 }
 
 void tcp_xdelta_stream::add_block (const uchar_t * data, const uint32_t blk_len, const uint64_t offset)
 {
 	observer_.on_diff_block(blk_len);
+	header_buff_.reset();
+
 	block_header header;
 	header.blk_type = BT_DIFF_BLOCK;
-	header.blk_len = 0;
-	header_buff_.reset ();
+	header.blk_len = blk_len + sizeof (offset);
+	header_buff_ << header;
+	header_buff_ << offset;
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_);
 
 	char_buffer<uchar_t> buff (const_cast<uchar_t*> (data), blk_len);
 	buff.wr_ptr (blk_len);
-
-	header.blk_len = blk_len + sizeof (offset);
-
-	header_buff_ << header;
-	header_buff_ << offset;
-
-	buffer_or_send (client_, stream_buff_, header_buff_, buff, observer_);
+	
+	buffer_or_send (client_, stream_buff_, buff, observer_);
 }
 
 void tcp_xdelta_stream::end_one_round ()
 {
-	header_buff_.reset ();
-	data_buff_.reset ();
-
-	block_header header;
-	header.blk_type = BT_END_ONE_ROUND;
-	header.blk_len = 0;
-	header_buff_ << header;
-	buffer_or_send (client_, stream_buff_, header_buff_, data_buff_, observer_);
-	send_block (client_, stream_buff_, observer_);
+	BEGINE_HEADER (header_buff_);
+	END_HEADER (header_buff_, BT_END_ONE_ROUND);
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_, true);
 	observer_.end_one_round ();
 }
 
 void tcp_xdelta_stream::end_hash_stream (const uint64_t filsize)
 {
-	header_buff_.reset ();
-	data_buff_.reset ();
+	BEGINE_HEADER (header_buff_);
+	header_buff_ << filsize;
+	END_HEADER (header_buff_, BT_XDELTA_END_BLOCK);
 
-	block_header header;
-	header.blk_type = BT_XDELTA_END_BLOCK;
-	header.blk_len = 0;
-
-	data_buff_ << filsize;
-	header.blk_len = data_buff_.data_bytes ();
-	header_buff_ << header;
-
-	buffer_or_send (client_, stream_buff_, header_buff_, data_buff_, observer_);
-	send_block (client_, stream_buff_, observer_);
-
-	stream_buff_.reset ();
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_, true);
 	observer_.end_hash_stream (filsize);
 }
 

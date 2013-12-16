@@ -192,9 +192,9 @@ inline void send_block (CSimpleSocket & socket, char_buffer<uchar_t> & data, xde
 
 void buffer_or_send (CSimpleSocket & socket
 							, char_buffer<uchar_t> & stream_buff
-							, char_buffer<uchar_t> & header_buff
-							, char_buffer<uchar_t> & data_buff
-							, xdelta_observer & observer);
+							, char_buffer<uchar_t> & buff
+							, xdelta_observer & observer
+							, bool now = false);
 
 inline void streamize_data (CSimpleSocket & socket
 							, char_buffer<uchar_t> & header_buff

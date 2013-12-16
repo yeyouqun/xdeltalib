@@ -330,12 +330,14 @@ enum block_type {
 	BT_BEGIN_ONE_ROUND,			///< 服务端发往客户端，开始 新一轮。
 	BT_END_ONE_ROUND,			///< 服务端发往客户端，结束一轮。
 	BT_HASH_END_BLOCK,			///< 服务端发往客户端，开始一个文件处理。
+	BT_ERROR_BLOCK = -1,
 };
 
 /// \struct
 /// \brief 数据块的块头结构
 struct block_header
 {
+	block_header() : blk_type(BT_ERROR_BLOCK), blk_len(-1) {}
 #define BLOCK_HEAD_LEN 6
 	uint16_t	blk_type;		///< 块类型，如 block_type。
 	uint32_t	blk_len;		///< 块长度。

@@ -79,7 +79,7 @@ public:
 	}
 	virtual void next_round (const xdelta::int32_t blk_len)
 	{
-		std::cout << "next round ...\n";
+		std::cout << "next round " << blk_len << " ...\n";
 	}
 	virtual void end_one_round ()
 	{
@@ -126,8 +126,8 @@ public:
 
 	source_observer () : recv_bytes_ (0)
 					, send_bytes_ (0)
-					, files_nr_ (0)
 					, tfilsize_ (0)
+					, files_nr_ (0)
 	{
 		stat_.init();
 	}

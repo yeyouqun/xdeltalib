@@ -65,7 +65,6 @@ tcp_hasher_stream::tcp_hasher_stream (CActiveSocket & client
 				, bool inplace) 
 				: client_ (client)
 				, header_buff_ (STACK_BUFF_LEN)
-				, data_buff_ (STACK_BUFF_LEN)
 				, stream_buff_ (XDELTA_BUFFER_LEN + SAFE_MARGIN) // used to buffer the block data and receive.
 				, observer_ (observer) 
 				, fop_ (fop)
@@ -86,25 +85,33 @@ const uint16_t MULTI_ROUND_FLAG = 0xffff;
 const uint16_t SINGLE_ROUND_FLAG = 0x5a5a;
 const uint16_t INPLACE_FLAG = 0xa5a5;
 
+#define BEGINE_HEADER(buff)			\
+	buff.reset();					\
+	buff.wr_ptr (BLOCK_HEAD_LEN);	\
+	uchar_t * ptr = buff.wr_ptr()
+
+#define END_HEADER(buff,type)	do {				\
+		block_header header;							\
+		header.blk_type = type;							\
+		header.blk_len = (uint32_t)((buff).wr_ptr () - ptr);	\
+		char_buffer<uchar_t> tmp (buff.begin (), STACK_BUFF_LEN); \
+		tmp << header; \
+	}while (0)
+
 void tcp_hasher_stream::start_hash_stream (const std::string & fname, const int32_t blk_len)
 {
-	data_buff_.reset ();
-	data_buff_ << fname << blk_len;
+	BEGINE_HEADER (header_buff_);
+
+	header_buff_ << fname << blk_len;
 	if (inplace_)
-		data_buff_ << INPLACE_FLAG;
+		header_buff_ << INPLACE_FLAG;
 	else if (multiround_)
-		data_buff_ << MULTI_ROUND_FLAG;
+		header_buff_ << MULTI_ROUND_FLAG;
 	else
-		data_buff_ << SINGLE_ROUND_FLAG;
-	
-	block_header header;
-	header.blk_type = BT_HASH_BEGIN_BLOCK;
-	header.blk_len = (uint32_t)data_buff_.data_bytes ();
+		header_buff_ << SINGLE_ROUND_FLAG;
 
-	header_buff_.reset ();
-	header_buff_ << header;
-
-	_streamize ();
+	END_HEADER (header_buff_, BT_HASH_BEGIN_BLOCK);
+	_streamize (header_buff_);
 	observer_.start_hash_stream (fname, blk_len);
 	filename_ = fname;
 	return;
@@ -112,16 +119,10 @@ void tcp_hasher_stream::start_hash_stream (const std::string & fname, const int3
 
 void tcp_hasher_stream::add_block (const uint32_t fhash, const slow_hash & shash)
 {
-	data_buff_.reset ();
-	data_buff_ << fhash << shash;
-	
-	block_header header;
-	header.blk_type = BT_HASH_BLOCK;
-	header.blk_len = (uint32_t)data_buff_.data_bytes ();
-
-	header_buff_.reset ();
-	header_buff_ << header;
-	_streamize ();
+	BEGINE_HEADER (header_buff_);
+	header_buff_ << fhash << shash;
+	END_HEADER (header_buff_, BT_HASH_BLOCK);
+	_streamize (header_buff_);
 }
 
 bool tcp_hasher_stream::end_first_round (const uchar_t file_hash[DIGEST_BYTES])
@@ -141,18 +142,13 @@ void tcp_hasher_stream::end_one_round ()
 
 void tcp_hasher_stream::_end_one_stage (uint16_t endtype, const uchar_t file_hash[DIGEST_BYTES])
 {
-	data_buff_.reset ();
-	data_buff_.copy (file_hash, DIGEST_BYTES);
-	data_buff_ << error_no_;
-	
-	block_header header;
-	header.blk_type = endtype;
-	header.blk_len = data_buff_.data_bytes ();
+	BEGINE_HEADER (header_buff_);
 
-	header_buff_.reset ();
-	header_buff_ << header;
-	_streamize ();
-	send_block (client_, stream_buff_, observer_);
+	header_buff_.copy (file_hash, DIGEST_BYTES);
+	header_buff_ << error_no_;
+	
+	END_HEADER (header_buff_, endtype);
+	_streamize (header_buff_, true);
 }
 
 void tcp_hasher_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize)
@@ -165,9 +161,9 @@ void tcp_hasher_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], 
 	observer_.end_hash_stream (filsize);
 }
 
-void tcp_hasher_stream::_streamize ()
+void tcp_hasher_stream::_streamize (char_buffer<uchar_t> & buff, bool now)
 {
-	buffer_or_send (client_, stream_buff_, header_buff_, data_buff_, observer_);
+	buffer_or_send (client_, stream_buff_, buff, observer_, now);
 }
 
 void tcp_hasher_stream::_receive_construct_data (reconstructor & reconst)
@@ -296,7 +292,7 @@ void multiround_tcp_stream::end_hash_stream (const uchar_t file_hash[DIGEST_BYTE
 bool multiround_tcp_stream::_receive_equal_node ()
 {
 	while (true) {
-		data_buff_.reset ();
+		header_buff_.reset ();
 		block_header header = read_block_header (client_, observer_);
 
 		if (!_end_first_round && header.blk_type == BT_END_FIRST_ROUND) {
@@ -311,11 +307,11 @@ bool multiround_tcp_stream::_receive_equal_node ()
 
 		if (header.blk_type == BT_EQUAL_BLOCK) {
 			assert (header.blk_len != 0);
-			read_block (data_buff_, client_, header.blk_len, observer_);
+			read_block (header_buff_, client_, header.blk_len, observer_);
 			target_pos tpos;
 			int32_t blk_len;
 			uint64_t s_offset;
-			data_buff_ >> tpos.index >> tpos.t_offset >> blk_len >> s_offset;
+			header_buff_ >> tpos.index >> tpos.t_offset >> blk_len >> s_offset;
 			reconst_.add_block (tpos, blk_len, s_offset);
 			observer_.on_equal_block(blk_len, s_offset);
 		}
@@ -353,34 +349,18 @@ bool multiround_tcp_stream::end_first_round (const uchar_t file_hash[DIGEST_BYTE
 
 void multiround_tcp_stream::next_round (const int32_t blk_len)
 {
-	data_buff_.reset ();
-	data_buff_ << blk_len;
-	
-	block_header header;
-	header.blk_type = BT_BEGIN_ONE_ROUND;
-	header.blk_len = (uint32_t)(data_buff_.wr_ptr () - data_buff_.rd_ptr ());
-
-	header_buff_.reset ();
-	header_buff_ << header;
-	_streamize ();
+	BEGINE_HEADER (header_buff_);
+	header_buff_ << blk_len;
+	END_HEADER (header_buff_, BT_BEGIN_ONE_ROUND);
+	_streamize (header_buff_);
 	observer_.next_round (blk_len);
 }
 
 void multiround_tcp_stream::end_one_round ()
 {
-	data_buff_.reset ();
-
-	block_header header;
-	header.blk_type = BT_END_ONE_ROUND;
-	header.blk_len = (uint32_t)(data_buff_.wr_ptr () - data_buff_.rd_ptr ());
-
-	header_buff_.reset ();
-	header_buff_ << header;
-	_streamize ();
-
-	if (stream_buff_.data_bytes () > 0)
-		send_block (client_, stream_buff_, observer_);
-
+	BEGINE_HEADER (header_buff_);
+	END_HEADER (header_buff_, BT_END_ONE_ROUND);
+	_streamize (header_buff_, true);
 	_receive_equal_node ();
 	observer_.end_one_round ();
 }

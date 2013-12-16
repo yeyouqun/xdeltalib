@@ -253,30 +253,31 @@ void init_active_socket (CActiveSocket & active, const uchar_t * addr, uint16_t 
 
 void buffer_or_send (CSimpleSocket & socket
 							, char_buffer<uchar_t> & stream_buff
-							, char_buffer<uchar_t> & header_buff
-							, char_buffer<uchar_t> & data_buff
-							, xdelta_observer & observer)
+							, char_buffer<uchar_t> & buff
+							, xdelta_observer & observer
+							, bool now)
 {
-	uint32_t hbytes = header_buff.data_bytes ();
-	uint32_t dbytes = data_buff.data_bytes ();
-
-	if ((hbytes + dbytes) > stream_buff.available ())
-		send_block (socket, stream_buff, observer);
-
-	// size of header_buff_ is far more less than stream_buff.
-	stream_buff.copy (header_buff.rd_ptr (), hbytes);
-	header_buff.reset ();
-
-	if (data_buff.data_bytes () < stream_buff.available ()) {
-		stream_buff.copy (data_buff.rd_ptr (), dbytes);
-		data_buff.reset ();
-	}
-	else {
+	if (now) {
 		send_block (socket, stream_buff, observer);
 		stream_buff.reset ();
-		send_block (socket, data_buff, observer);
-		data_buff.reset ();
+		send_block (socket, buff, observer);
 	}
+	else {
+		if (stream_buff.available () >= buff.data_bytes ()) {
+			stream_buff.copy (buff.rd_ptr (), buff.data_bytes ());
+		}
+		else {
+			send_block (socket, stream_buff, observer);
+			stream_buff.reset ();
+
+			if (stream_buff.available () >= buff.data_bytes ())
+				stream_buff.copy (buff.rd_ptr (), buff.data_bytes ());
+			else
+				send_block (socket, buff, observer);
+		}
+	}
+
+	buff.reset ();
 }
 
 } //namespace xdelta
