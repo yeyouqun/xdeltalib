@@ -64,29 +64,28 @@ void split_hole (std::set<hole_t> & holeset, const hole_t & hole)
 		const hole_t bighole = *pos;
 		if (bighole.offset <= hole.offset && 
 			(bighole.offset + bighole.length) >= (hole.offset + hole.length)) {
-				// split to one or more hole, like this
-				// |--------------------------------------|
-				// |---------| added block |--------------|
-				holeset.erase (pos);
-				if (bighole.offset < hole.offset) {
-					hole_t newhole;
-					newhole.offset = bighole.offset;
-					newhole.length = hole.offset - bighole.offset;
-					holeset.insert (newhole);
-				}
+			// split to one or more hole, like this
+			// |--------------------------------------|
+			// |---------| added block |--------------|
+			holeset.erase (pos);
+			if (bighole.offset < hole.offset) {
+				hole_t newhole;
+				newhole.offset = bighole.offset;
+				newhole.length = hole.offset - bighole.offset;
+				holeset.insert (newhole);
+			}
 
-				uint64_t bigend = bighole.offset + bighole.length,
-					     holeend = hole.offset + hole.length;
-				if (bigend > holeend) {
-					hole_t newhole;
-					newhole.offset = hole.offset + hole.length;
-					newhole.length = bigend - holeend;
-					holeset.insert (newhole);
-				}
+			uint64_t bigend = bighole.offset + bighole.length,
+				     holeend = hole.offset + hole.length;
+			if (bigend > holeend) {
+				hole_t newhole;
+				newhole.offset = hole.offset + hole.length;
+				newhole.length = bigend - holeend;
+				holeset.insert (newhole);
+			}
 
-				return;
+			return;
 		}
-		++pos;
 	}
 
 	BUG("hole must be exists");
