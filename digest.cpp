@@ -61,6 +61,8 @@
     #include <unistd.h>
     #include <stdio.h>
 #endif
+#include <assert.h>
+
 #include "mytypes.h"
 #include "digest.h"
 #include "rw.h"

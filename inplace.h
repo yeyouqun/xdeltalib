@@ -132,11 +132,11 @@ private:
 	/// 指示下一轮 Hash 流开始。
 	/// \param[in] blk_len		下一轮 Hash 的块长度。
 	/// \return 没有返回
-	virtual void next_round (const int32_t blk_len) { output_.next_round (blk_len); }
+	virtual void next_round (const int32_t blk_len) { assert (false); }
 	/// \brief
 	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
 	/// \return 没有返回
-	virtual void end_one_round () { output_.end_one_round (); }
+	virtual void end_one_round () { assert (false); }
 	/// \brief
 	/// 指示结束一个文件的 Hash 流的处理。
 	/// \param[in] filsize		源文件的大小。
@@ -146,7 +146,7 @@ private:
 	/// 在多轮 Hash 中设置源文件洞对象。
 	/// \param[in] holeset		文件洞集合对像。
 	/// \return 没有返回
-	virtual void set_holes (std::set<hole_t> * holeset) {}
+	virtual void set_holes (std::set<hole_t> * holeset) { assert (false); }
 	/// \brief
 	/// 指示处理过程中的错误。
 	/// \param[in] errmsg		错误信息。

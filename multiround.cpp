@@ -178,8 +178,11 @@ bool multiround_hasher_stream::end_first_round (const uchar_t file_hash[DIGEST_B
 {
 	uchar_t hash[DIGEST_BYTES];
 	get_file_digest (reader_, hash);
-	if (memcmp (hash, file_hash, DIGEST_BYTES) == 0)
+	if (memcmp (hash, file_hash, DIGEST_BYTES) == 0) {
+		source_holes_.clear ();
+		output_->stop_first_round ();
 		return false;
+	}
 
 	read_and_delta (reader_, *output_, hashes_, source_holes_, blk_len_, true);
 	output_->end_one_round ();

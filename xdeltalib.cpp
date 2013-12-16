@@ -222,13 +222,12 @@ void multiround_hash_table::hash_it (file_reader & reader, hasher_stream & strea
 			_next_round (reader, stream, holes, blk_len);
 			blk_len /= multiround_base ();
 		}
-
-		uchar_t file_hash[DIGEST_BYTES];
-		memset (file_hash, 0, DIGEST_BYTES);
-		uint64_t filsize = reader.get_file_size ();
-		reader.close_file ();
-		stream.end_hash_stream (file_hash, filsize);
 	}
+	uchar_t file_hash[DIGEST_BYTES];
+	memset (file_hash, 0, DIGEST_BYTES);
+	uint64_t filsize = reader.get_file_size ();
+	reader.close_file ();
+	stream.end_hash_stream (file_hash, filsize);
 }
 
 

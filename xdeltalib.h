@@ -142,6 +142,10 @@ public:
 	/// \return 没有返回
 	virtual void next_round (const int32_t blk_len) = 0;
 	/// \brief
+	/// 本接口仅在多轮计算中，如果第一轮所计算的 Hash 相同，不再需要进行后续的多轮计算时
+	/// 调用，在其他的情况下调用都是错误的。其主要是向服务器发送停止后续多轮计算的信息。
+	virtual void stop_first_round () { assert (false); }
+	/// \brief
 	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
 	/// \return 没有返回
 	virtual void end_one_round () = 0;

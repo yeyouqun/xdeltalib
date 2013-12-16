@@ -36,6 +36,7 @@
     #include <memory.h>
     #include <stdio.h>
 #endif
+#include <assert.h>
 
 #include "mytypes.h"
 #include "digest.h"

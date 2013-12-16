@@ -143,6 +143,7 @@ class tcp_xdelta_stream : public xdelta_stream
 		observer_.next_round(blk_len);
 	}
 	virtual void end_one_round ();
+	virtual void stop_first_round ();
 	virtual void set_holes (std::set<hole_t> * holeset) {}
 	virtual void end_hash_stream (const uint64_t filsize);
 	virtual void on_error (const std::string & errmsg, const int errorno);
@@ -217,6 +218,16 @@ void tcp_xdelta_stream::end_one_round ()
 	observer_.end_one_round ();
 }
 
+void tcp_xdelta_stream::stop_first_round ()
+{
+	block_header header;
+	header.blk_type = BT_END_FIRST_ROUND;
+	header.blk_len = 0;
+	header_buff_ << header;
+	buffer_or_send (client_, stream_buff_, header_buff_, observer_, true);
+	return;
+}
+
 void tcp_xdelta_stream::end_hash_stream (const uint64_t filsize)
 {
 	BEGINE_HEADER (header_buff_);
@@ -252,15 +263,7 @@ static int receive_hash_table (CSimpleSocket & client, hasher_stream & stream, x
 			read_block (data_buff, client, header.blk_len, observer);
 			uchar_t file_hash[DIGEST_BYTES];
 			memcpy (file_hash, data_buff.rd_ptr (), DIGEST_BYTES);
-			data_buff.rd_ptr (DIGEST_BYTES);
-
-			bool cont_multiround = stream.end_first_round (file_hash);
-			if (!cont_multiround) {
-				header.blk_type = BT_END_FIRST_ROUND;
-				header.blk_len = 0;
-				data_buff << header;
-				send_block (client, data_buff, observer);
-			}
+			stream.end_first_round (file_hash);
 		}
 		else if (header.blk_type == BT_BEGIN_ONE_ROUND) {
 			assert (header.blk_len != 0);

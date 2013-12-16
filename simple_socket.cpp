@@ -73,6 +73,7 @@
 #include <algorithm>
 #include <vector>
 #include <math.h>
+#include <assert.h>
 
 #include "mytypes.h"
 #include "digest.h"
