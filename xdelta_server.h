@@ -195,16 +195,6 @@ void buffer_or_send (CSimpleSocket & socket
 							, char_buffer<uchar_t> & buff
 							, xdelta_observer & observer
 							, bool now = false);
-
-inline void streamize_data (CSimpleSocket & socket
-							, char_buffer<uchar_t> & header_buff
-							, char_buffer<uchar_t> & data_buff
-							, xdelta_observer & observer)
-{
-	send_block (socket, header_buff, observer);
-	send_block (socket, data_buff, observer);
-}
-
 } //namespace xdelta
 
 #endif //__XDELTA_SERVER_H__

@@ -256,12 +256,10 @@ static int receive_hash_table (CSimpleSocket & client, hasher_stream & stream, x
 
 			bool cont_multiround = stream.end_first_round (file_hash);
 			if (!cont_multiround) {
-				char_buffer<uchar_t> data_buff (100);
-				char_buffer<uchar_t> header_buff (100);
 				header.blk_type = BT_END_FIRST_ROUND;
 				header.blk_len = 0;
-				header_buff << header;
-				streamize_data (client, header_buff, data_buff, observer);
+				data_buff << header;
+				send_block (client, data_buff, observer);
 			}
 		}
 		else if (header.blk_type == BT_BEGIN_ONE_ROUND) {
@@ -429,7 +427,8 @@ static void xdelta_client_task (void * data)
 				header.blk_type = BT_CLIENT_FILE_BLOCK;
 				header.blk_len = data_buff.data_bytes ();
 				header_buff << header;
-				streamize_data (peer, header_buff, data_buff, *pcs->observer_);
+				send_block (peer, header_buff, *pcs->observer_);
+				send_block (peer, data_buff, *pcs->observer_);
 
 				header = read_block_header (peer, *pcs->observer_);
 				if (header.blk_type != BT_HASH_BEGIN_BLOCK) {
@@ -529,7 +528,8 @@ void xdelta_client::run (file_operator & foperator
 
 	header.blk_len = data_buff.data_bytes ();
 	header_buff << header;
-	streamize_data (client_, header_buff, data_buff, observer);
+	send_block (client_, header_buff, observer);
+	send_block (client_, data_buff, observer);
 }
 
 void xdelta_client::add_task (file_reader * reader, deletor * pdel)
