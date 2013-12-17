@@ -223,7 +223,7 @@ void traverse_source (const std::string & pathname
 
 int main (int argn, char ** argc)
 {
-	if (argn != 3) {
+	if (argn != 4) {
 		return -1;
 	}
 
@@ -236,11 +236,11 @@ int main (int argn, char ** argc)
 		std::string path (argc[1]);
 		xdelta::f_local_creator localop (path);
 		xdelta::file_operator &fop = localop;
-		client.run (fop, ob, (xdelta::uchar_t*)"127.0.0.1");
+		client.run (fop, ob, (xdelta::uchar_t*)argc[3]);
 		traverse_source (path, "", client);
 		client.wait ();
 		xdelta::uint64_t end = time (0);
-		printf ("TIME:\t %d seconds\nSEND:\t%lld bytes\nRECV:\t%lld bytes\nRATIO:\t%.03f\nAVERAGE: %lld per second.\n"
+		printf ("TIME:\t %d seconds\nSEND:\t%lld bytes\nRECV:\t%lld bytes\nRATIO:\t%.05f\nAVERAGE: %lld per second.\n"
 			, (int)(end - start),  ob.send_bytes_, ob.recv_bytes_
 			, (float)((ob.send_bytes_ + ob.recv_bytes_)/(float)(ob.tfilsize_))
 			, (xdelta::uint64_t)((ob.send_bytes_ + ob.recv_bytes_ + ob.tfilsize_)/(float)(end - start)));
