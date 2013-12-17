@@ -155,12 +155,18 @@ void reconstructor::on_error (const std::string & errmsg, const int errorno)
 		return;
 	}
 
+	stop_reconstruct ();
+}
+
+void reconstructor::stop_reconstruct ()
+{
 	if (reader_)
 		reader_->close_file ();
 	if (writer_)
 		writer_->close_file ();
 	if (!ftmpname_.empty ())
 		foperator_.rm_file (ftmpname_);
+	ftmpname_.clear ();
 }
 
 } //namespace xdelta

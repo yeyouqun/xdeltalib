@@ -344,6 +344,9 @@ bool multiround_tcp_stream::end_first_round (const uchar_t file_hash[DIGEST_BYTE
 
 	bool neednround = _receive_equal_node ();
 	observer_.end_first_round ();
+	if (!neednround)
+		reconst_.stop_reconstruct ();
+
 	return neednround;
 }
 

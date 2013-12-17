@@ -74,6 +74,9 @@ public:
 	/// \param[in] errorno		错误码。
 	/// \return 没有返回
 	virtual void on_error (const std::string & errmsg, const int errorno);
+	/// \brief
+	/// 在特定的情况下需要结束构造，并且删除创建的临时文件。
+	virtual void stop_reconstruct ();
 };
 
 uint32_t seek_and_read (file_reader & reader
