@@ -179,6 +179,7 @@ void tcp_xdelta_stream::start_hash_stream (const std::string & fname, const int3
 	BEGINE_HEADER (header_buff_);
 	END_HEADER (header_buff_, BT_XDELTA_BEGIN_BLOCK);
 	buffer_or_send (client_, stream_buff_, header_buff_, observer_);
+	observer_.start_hash_stream (fname, blk_len);
 }
 
 void tcp_xdelta_stream::add_block (const target_pos & tpos

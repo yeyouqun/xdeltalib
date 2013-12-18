@@ -66,6 +66,7 @@ class source_observer : public xdelta::xdelta_observer
 public:
 	virtual void start_hash_stream (const std::string & fname, const xdelta::int32_t blk_len)
 	{
+		//lock_.lock ();
 		stat_.init();
 		files_nr_++;
 		stat_.fname_ = fname;
@@ -91,6 +92,7 @@ public:
 		printf("file:%s, same block bytes/nr:[%lld,%lld], diff block bytes/nr:[%lld, %lld]\n",
 			stat_.fname_.c_str(), stat_.same_block_bytes_, stat_.same_block_nr_
 			, stat_.diff_block_bytes_, stat_.diff_block_nr_);
+		//lock_.unlock ();
 	}
 	void on_error (const std::string & errmsg, const int errorno)
 	{
@@ -123,6 +125,7 @@ public:
 	xdelta::uint64_t	tfilsize_;
 	int					files_nr_;
 	file_stat			stat_;
+	xdelta::mutex		lock_;
 
 	source_observer () : recv_bytes_ (0)
 					, send_bytes_ (0)
