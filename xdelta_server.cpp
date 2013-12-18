@@ -230,7 +230,7 @@ void init_passive_socket (CPassiveSocket & server, uint16_t port)
 		THROW_XDELTA_EXCEPTION (errmsg);
 	}
 
-	if (!server.Listen((const uchar_t *)XDELTA_ADDR, port)) {
+	if (!server.Listen((const uchar_t *)0, port)) {
 		std::string errmsg = fmt_string ("Listen on port %d failed.", (uint32_t)port);
 		THROW_XDELTA_EXCEPTION (errmsg);
 	}

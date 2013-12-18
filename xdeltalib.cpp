@@ -108,6 +108,9 @@ void hash_table::add_block (const uint32_t fhash, const slow_hash & shash)
 	pos->second->insert (shash);
 }
 
+/// \fn read_and_hash()
+/// \brief
+/// 由这个接口实现计算快、慢哈希。
 static void read_and_hash (file_reader & reader
 							, hasher_stream & stream
 							, uint64_t to_read_bytes
@@ -329,6 +332,11 @@ xdelta_hash_table::~xdelta_hash_table ()
 
 void split_hole (std::set<hole_t> & holeset, const hole_t & hole);
 
+/// \fn read_and_delta()
+/// \brief
+/// 由这个接口实现差异数据的提取，这个地方是所有算法的核心，其性能
+/// 表现决定了整个库的性能表现。应该尽力提高其执行效率，不知道可否采用
+/// 更多的并发计算方法。
 void read_and_delta (file_reader & reader
 					, xdelta_stream & stream
 					, const hash_table & hashes
