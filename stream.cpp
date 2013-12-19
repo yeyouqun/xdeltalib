@@ -85,19 +85,6 @@ const uint16_t MULTI_ROUND_FLAG = 0xffff;
 const uint16_t SINGLE_ROUND_FLAG = 0x5a5a;
 const uint16_t INPLACE_FLAG = 0xa5a5;
 
-#define BEGINE_HEADER(buff)			\
-	buff.reset();					\
-	buff.wr_ptr (BLOCK_HEAD_LEN);	\
-	uchar_t * ptr = buff.wr_ptr()
-
-#define END_HEADER(buff,type)	do {				\
-		block_header header;							\
-		header.blk_type = type;							\
-		header.blk_len = (uint32_t)((buff).wr_ptr () - ptr);	\
-		char_buffer<uchar_t> tmp (buff.begin (), STACK_BUFF_LEN); \
-		tmp << header; \
-	}while (0)
-
 void tcp_hasher_stream::start_hash_stream (const std::string & fname, const int32_t blk_len)
 {
 	BEGINE_HEADER (header_buff_);

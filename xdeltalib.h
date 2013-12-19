@@ -16,7 +16,10 @@
 */
 #ifndef __XDELTA_LIB_H__
 #define __XDELTA_LIB_H__
-
+#ifdef _WIN32
+	#include <stdint.h>
+#else
+#endif
 /// @file
 /// @mainpage xdeltalib 库使用指南
 ///
@@ -488,6 +491,72 @@ inline bool is_no_file_error (const int32_t error_no)
 	return true;
 }
 
+/// 版本宏，在通信时，通过 BT_CLIENT_BLOCK 最开始的两个字节，版本策略
+/// 是向后兼容，并且每次更新增加 1。在可正常接收信息时，向客户端发送版本信息，以及错误信息。
+#define XDELTA_VERSION (INT16_C(1))
+/// 版本不匹配
+#define ERR_DISCOMPAT_VERSION (-1)
+#define ERR_UNKNOWN_VERSION (-2)
+#define	ERR_INCORRECT_BLOCK_TYPE (-3)
+
+struct handshake_header
+{
+	handshake_header() : version(XDELTA_VERSION)
+	, error_no(0)
+	{
+		memset(reserved, 0, 32);
+	}
+	void init()
+	{
+		version = XDELTA_VERSION;
+		error_no = 0;
+		memset(reserved, 0, 32);
+	}
+	int16_t		version;
+	int32_t		error_no;
+	uchar_t		reserved[32];
+};
+
+/// \fn char_buffer<char_type> & operator << (char_buffer<char_type> & buff, const handshake_header & var)
+/// \brief 将对象变量流化到 buff 中。
+/// \param[in] buff char_buff 对象。
+/// \param[in] var  变量值。
+/// \return buff char_buff 的引用。
+template <typename char_type>
+inline char_buffer<char_type> & operator << (char_buffer<char_type> & buff, const handshake_header & var)
+{
+	buff << var.version << var.error_no;
+	buff.copy(var.reserved, 32);
+	return buff;
+}
+
+/// \fn char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, handshake_header & var)
+/// \brief 将对象变量反流化到 buff 中。
+/// \param[in] buff char_buff 对象。
+/// \param[in] var  变量值。
+/// \return buff char_buff 的引用。
+template <typename char_type>
+inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, handshake_header & var)
+{
+	buff >> var.version >> var.error_no;
+	memcpy(var.reserved, buff.rd_ptr(), 32);
+	buff.rd_ptr(32);
+	return buff;
+}
+
+#define BEGINE_HEADER(buff)	do {		\
+		buff.reset();					\
+		buff.wr_ptr(BLOCK_HEAD_LEN);	\
+	} while (0)
+
+#define END_HEADER(buff,type)	do {							\
+		block_header header;									\
+		header.blk_type = type;									\
+		header.blk_len = (uint32_t)(((buff).wr_ptr()			\
+				- (buff).begin()) - BLOCK_HEAD_LEN);			\
+		char_buffer<uchar_t> tmp(buff.begin(), STACK_BUFF_LEN); \
+		tmp << header;											\
+	}while (0)
 } // namespace xdelta
 #endif /*__XDELTA_LIB_H__*/
 

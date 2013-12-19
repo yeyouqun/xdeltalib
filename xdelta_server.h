@@ -105,6 +105,11 @@ class DLL_EXPORT xdelta_server
 	void _start_task (file_operator & foperator
 					, xdelta_observer & observer
 					, uint16_t port);
+	void handle_version_1 (char_buffer<uchar_t> & buff
+						, CActiveSocket * client
+						, std::vector<thread*> & hasher_threads
+						, file_operator & foperator
+						, xdelta_observer & observer);
 public:
 	//
 	// @auto_multiround_filsize if file's size excess this size
@@ -195,6 +200,7 @@ void buffer_or_send (CSimpleSocket & socket
 							, char_buffer<uchar_t> & buff
 							, xdelta_observer & observer
 							, bool now = false);
+
 } //namespace xdelta
 
 #endif //__XDELTA_SERVER_H__

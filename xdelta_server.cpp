@@ -143,6 +143,47 @@ static void xdelta_server_thread (void * data)
 // client <---> server (one to multiple, used to transmit hash value and xdelta value)
 //
 
+void xdelta_server::handle_version_1 (char_buffer<uchar_t> & buff
+								, CActiveSocket * client
+								, std::vector<thread*> & hasher_threads
+								, file_operator & foperator
+								, xdelta_observer & observer)
+{
+	uint32_t len = (uint32_t)(buff.wr_ptr () - buff.rd_ptr ());
+	int nthread = len / sizeof (uint16_t);
+	// get client ports that receive hasher data.
+	for (int i = 0; i < nthread; ++i) {
+		// create hasher and sender.
+		std::auto_ptr<hasher_strcut> data(new hasher_strcut);
+		data->addr_ = (char_t*)client->GetClientAddr();
+		if (data->addr_.empty())
+			continue;
+		buff >> data->port_;
+		data->fop_ = &foperator;
+		data->observer_ = &observer;
+		data->auto_multiround_filsize_ = auto_multiround_filsize_;
+		data->inplace_ = inplace_;
+		data->compress_ = compress_;
+		thread * thrd = new thread(xdelta_server_thread, (void *)data.release());
+		hasher_threads.push_back(thrd);
+	}
+}
+
+static void acknowlegement (int32_t error, 
+							CActiveSocket * client, 
+							xdelta_observer & observer)
+{
+	DEFINE_STACK_BUFFER (buff);
+	handshake_header hsh;
+	hsh.version = XDELTA_VERSION;
+	hsh.error_no = error;
+
+	BEGINE_HEADER(buff);
+	buff << hsh;
+	END_HEADER(buff, BT_SERVER_BLOCK);
+	send_block(*client, buff, observer);
+}
+
 void xdelta_server::_start_task (file_operator & foperator
 								, xdelta_observer & observer
 								, uint16_t port)
@@ -153,35 +194,32 @@ void xdelta_server::_start_task (file_operator & foperator
 	CActiveSocket * client = 0;
 	DEFINE_STACK_BUFFER (buff);
 	if ((client = server_.Accept()) != NULL) {
-		client_auto.reset (client);
+		client_auto.reset(client);
 		std::vector<thread*> hasher_threads;
-		block_header header = read_block_header (*client, observer);
+		block_header header = read_block_header(*client, observer);
 		if (header.blk_type != BT_CLIENT_BLOCK) {
-			std::string errmsg = fmt_string ("Error data format(not BT_CLIENT_BLOCK).");
-			THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
-		}
-		
-		int nthread = header.blk_len / sizeof (uint16_t);
-		// get client ports that receive hasher data.
-		for (int i = 0; i < nthread; ++i) {
-			buff.reset ();
-			read_block (buff, (*client), sizeof (uint16_t), observer);
-			// create hasher and sender.
-			std::auto_ptr<hasher_strcut> data (new hasher_strcut);
-			data->addr_ = (char_t*)client->GetClientAddr ();
-			if (data->addr_.empty ())
-				continue;
-			buff >> data->port_;
-			data->fop_ = &foperator;
-			data->observer_ = &observer;
-			data->auto_multiround_filsize_ = auto_multiround_filsize_;
-			data->inplace_ = inplace_;
-			data->compress_ = compress_;
-			thread * thrd = new thread (xdelta_server_thread, (void *)data.release ());
-			hasher_threads.push_back (thrd);
+			acknowlegement (ERR_INCORRECT_BLOCK_TYPE, client, observer);
+			std::string errmsg = fmt_string("Error data format(not BT_CLIENT_BLOCK).");
+			THROW_XDELTA_EXCEPTION_NO_ERRNO(errmsg);
 		}
 
-		wait_to_exit (hasher_threads);
+		read_block(buff, (*client), header.blk_len, observer);
+
+		handshake_header hsh;
+		buff >> hsh;
+		if (hsh.version > XDELTA_VERSION) {
+			acknowlegement (ERR_DISCOMPAT_VERSION, client, observer);
+		}
+		else {
+			if (hsh.version == 1) { // 当前只有版本 1.
+				handle_version_1 (buff, client, hasher_threads, foperator, observer);
+				acknowlegement (0, client, observer);
+				wait_to_exit(hasher_threads);
+			}
+			else {
+				acknowlegement (ERR_UNKNOWN_VERSION, client, observer);
+			}
+		}
 	}
 	server_.Close ();
 }

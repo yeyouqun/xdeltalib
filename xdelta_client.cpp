@@ -161,19 +161,6 @@ public:
 	{}
 };
 
-#define BEGINE_HEADER(buff)			\
-	buff.reset();					\
-	buff.wr_ptr (BLOCK_HEAD_LEN);	\
-	uchar_t * ptr = buff.wr_ptr()
-
-#define END_HEADER(buff,type)	do {				\
-		block_header header;							\
-		header.blk_type = type;							\
-		header.blk_len = (uint32_t)((buff).wr_ptr () - ptr);	\
-		char_buffer<uchar_t> tmp (buff.begin (), STACK_BUFF_LEN); \
-		tmp << header; \
-	}while (0)
-
 void tcp_xdelta_stream::start_hash_stream (const std::string & fname, const int32_t blk_len)
 {
 	BEGINE_HEADER (header_buff_);
@@ -397,7 +384,7 @@ static void xdelta_client_task (void * data)
 	std::auto_ptr<CActiveSocket> server;
 
 	while (true) {
-		server.reset (client.Accept (5));
+		server.reset (client.Accept (2));
 		if (server.get () == 0 &&
 			client.GetSocketError () == CSimpleSocket::SocketTimedout &&
 				(!slot->is_waiting () || slot->task_count () != 0))
@@ -407,8 +394,7 @@ static void xdelta_client_task (void * data)
 
 	if (server.get ()) {
 		CActiveSocket & peer = *server.get ();
-		DEFINE_STACK_BUFFER (header_buff);
-		DEFINE_STACK_BUFFER (data_buff);
+		DEFINE_STACK_BUFFER (buff);
 		while (true) {
 			std::auto_ptr<task_struct> pto (slot->pop_task ());
 			if (pto.get () == 0) {
@@ -422,31 +408,25 @@ static void xdelta_client_task (void * data)
 
 			file_reader & reader = *pto->reader_;
 			try {
-				header_buff.reset ();
-				data_buff.reset ();
+				BEGINE_HEADER (buff);
+				buff << reader.get_fname ();
+				END_HEADER (buff, BT_CLIENT_FILE_BLOCK);
 
-				data_buff << reader.get_fname ();
+				send_block (peer, buff, *pcs->observer_);
 
-				block_header header;
-				header.blk_type = BT_CLIENT_FILE_BLOCK;
-				header.blk_len = data_buff.data_bytes ();
-				header_buff << header;
-				send_block (peer, header_buff, *pcs->observer_);
-				send_block (peer, data_buff, *pcs->observer_);
-
-				header = read_block_header (peer, *pcs->observer_);
+				block_header header = read_block_header (peer, *pcs->observer_);
 				if (header.blk_type != BT_HASH_BEGIN_BLOCK) {
 					std::string errmsg = fmt_string ("Error data format(not BT_HASH_BEGIN_BLOCK).");
 					THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 				}
 
 				assert (header.blk_len != 0);
-				data_buff.reset ();
-				read_block (data_buff, peer, header.blk_len, *pcs->observer_);
+				buff.reset ();
+				read_block (buff, peer, header.blk_len, *pcs->observer_);
 				std::string filename;
 				int32_t blk_len;
 				uint16_t xdelta_type;
-				data_buff >> filename >> blk_len >> xdelta_type;
+				buff >> filename >> blk_len >> xdelta_type;
 
 				if (xdelta_type == INPLACE_FLAG)
 					xdelta_inplace (peer, *pcs->observer_, reader, blk_len);
@@ -499,21 +479,25 @@ void xdelta_client::run (file_operator & foperator
 {
 	init_active_socket (client_, paddr, port);
 
-	DEFINE_STACK_BUFFER (header_buff);
-	DEFINE_STACK_BUFFER (data_buff);
+	DEFINE_STACK_BUFFER (buff);
 
 	if (thread_nr_ == 0)
 		thread_nr_ = thread::hardware_concurrency () * 2;
 
-	block_header header;
-	header.blk_type = BT_CLIENT_BLOCK;
+	thread_nr_ = thread_nr_ > 256 ? 256 : thread_nr_;
+	handshake_header hsh;
+	hsh.error_no = 0;
+	hsh.version = XDELTA_VERSION;
+
+	BEGINE_HEADER(buff);
+	buff << hsh;
 
 	uint32_t thread_nr = thread_nr_;
 	while (thread_nr > 0) {
 		std::auto_ptr<CPassiveSocket> client (new CPassiveSocket (compress_));
 		init_passive_socket (*client.get (), 0);
 		uint16_t data_port = client->GetServerPort ();
-		data_buff << data_port;
+		buff << data_port;
 
 		client_struct * pcs = new client_struct;
 		pcs->client_ = client.release ();
@@ -530,10 +514,25 @@ void xdelta_client::run (file_operator & foperator
 		--thread_nr;
 	}
 
-	header.blk_len = data_buff.data_bytes ();
-	header_buff << header;
-	send_block (client_, header_buff, observer);
-	send_block (client_, data_buff, observer);
+	END_HEADER (buff, BT_CLIENT_BLOCK);
+	send_block (client_, buff, observer);
+	block_header header = read_block_header(client_, observer);
+	if (header.blk_type != BT_SERVER_BLOCK) {
+		wait ();
+		std::string errmsg = fmt_string("Error data format(not BT_SERVER_BLOCK).");
+		THROW_XDELTA_EXCEPTION_NO_ERRNO(errmsg);
+	}
+	
+	hsh.init ();
+	buff.reset ();
+	read_block (buff, client_, header.blk_len, observer);
+	buff >> hsh;
+	if (hsh.error_no != 0) {
+		wait ();
+		std::string errmsg = fmt_string("Error return from server(version is %d): %d."
+										, hsh.version, hsh.error_no);
+		THROW_XDELTA_EXCEPTION_NO_ERRNO(errmsg);
+	}
 }
 
 void xdelta_client::add_task (file_reader * reader, deletor * pdel)
