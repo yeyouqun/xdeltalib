@@ -98,7 +98,7 @@ public:
 	/// \brief
 	/// 重置所有指定参数。
 	/// \return 无返回
-	void reset () { _occupied = 0; _bytes_read = 0; _occupied = 0; }
+	void reset () { _occupied = 0; _bytes_read = 0; }
 	/// \brief
 	/// 返回缓冲区的尾部
 	/// \return 返回缓冲区的尾部指针
