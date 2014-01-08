@@ -148,30 +148,25 @@ public:
 #endif
 
 #ifndef BYTE_ORDER
-	# define LITTLE_ENDIAN 0x4321
-	# define BIG_ENDIAN    0x1234
-
+    #define LITTLE_ENDIAN 0x4321
+    #define BIG_ENDIAN    0x1234
 	#ifdef _WIN32
-		# if defined (_M_AMD64) || defined (_M_IX86)
-			#define BYTE_ORDER LITTLE_ENDIAN
-		# else
-			#define BYTE_ORDER BIG_ENDIAN
-			#define WORDS_BIGENDIAN 1
-		# endif
-	#elif defined (_LINUX)
-		#ifdef __ORDER_LITTLE_ENDIAN__ == __BYTE_ORDER__
+		#if defined (_M_AMD64) || defined (_M_IX86)
 			#define BYTE_ORDER LITTLE_ENDIAN
 		#else
 			#define BYTE_ORDER BIG_ENDIAN
-			#define WORDS_BIGENDIAN 1
 		#endif
-	#elif defined (_UNIX)
-		#if defined(__i386__) || defined (__amd64__)
+	#elif defined (__GNUG__) || defined (__GNUC__)
+		#if defined (__ORDER_LITTLE_ENDIAN__) && defined (__BYTE_ORDER__) &&
+		    (__ORDER_LITTLE_ENDIAN__ == __BYTE_ORDER__)
+			#define BYTE_ORDER LITTLE_ENDIAN
+		#elif defined(__i386__) || defined (__amd64__)
 			#define BYTE_ORDER LITTLE_ENDIAN
 		#else
 			#define BYTE_ORDER BIG_ENDIAN
-			#define WORDS_BIGENDIAN 1
 		#endif
+	#else
+	    #error Unsupportted compiler or platform.
 	#endif
 #endif
 
