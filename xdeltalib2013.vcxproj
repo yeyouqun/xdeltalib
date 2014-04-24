@@ -132,19 +132,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="active_socket.h" />
+    <ClInclude Include="BigInteger.h" />
+    <ClInclude Include="BigIntegerAlgorithms.h" />
+    <ClInclude Include="BigIntegerLibrary.h" />
+    <ClInclude Include="BigIntegerUtils.h" />
+    <ClInclude Include="BigUnsigned.h" />
+    <ClInclude Include="BigUnsignedInABase.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="digest.h" />
     <ClInclude Include="fast_mutex.h" />
     <ClInclude Include="inplace.h" />
     <ClInclude Include="lz4.h" />
     <ClInclude Include="lz4hc.h" />
+    <ClInclude Include="md5.h" />
     <ClInclude Include="multiround.h" />
     <ClInclude Include="mytypes.h" />
+    <ClInclude Include="NumberlikeArray.h" />
     <ClInclude Include="passive_socket.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="reconstruct.h" />
+    <ClInclude Include="rollsim.h" />
     <ClInclude Include="rollsum.h" />
     <ClInclude Include="rw.h" />
+    <ClInclude Include="sha1.h" />
+    <ClInclude Include="simhash.h" />
     <ClInclude Include="simple_socket.h" />
     <ClInclude Include="stream.h" />
     <ClInclude Include="tinythread.h" />
@@ -155,16 +166,25 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="active_socket.cpp" />
+    <ClCompile Include="BigInteger.cpp" />
+    <ClCompile Include="BigIntegerAlgorithms.cpp" />
+    <ClCompile Include="BigIntegerUtils.cpp" />
+    <ClCompile Include="BigUnsigned.cpp" />
+    <ClCompile Include="BigUnsignedInABase.cpp" />
     <ClCompile Include="digest.cpp" />
     <ClCompile Include="inplace.cpp" />
     <ClCompile Include="lz4.cpp" />
     <ClCompile Include="lz4hc.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="multiround.cpp" />
     <ClCompile Include="passive_socket.cpp" />
     <ClCompile Include="platform.cpp" />
     <ClCompile Include="reconstruct.cpp" />
+    <ClCompile Include="rollsim.cpp" />
     <ClCompile Include="rollsum.cpp" />
     <ClCompile Include="rw.cpp" />
+    <ClCompile Include="sha1.cpp" />
+    <ClCompile Include="simhash.cpp" />
     <ClCompile Include="simple_socket.cpp" />
     <ClCompile Include="stream.cpp" />
     <ClCompile Include="tinythread.cpp" />

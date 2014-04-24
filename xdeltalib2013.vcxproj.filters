@@ -78,6 +78,39 @@
     <ClInclude Include="xxhash.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="BigInteger.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BigIntegerAlgorithms.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BigIntegerLibrary.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BigIntegerUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BigUnsigned.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BigUnsignedInABase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberlikeArray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rollsim.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="simhash.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="active_socket.cpp">
@@ -132,6 +165,33 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="xxhash.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BigInteger.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BigIntegerAlgorithms.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BigIntegerUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BigUnsigned.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BigUnsignedInABase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="simhash.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rollsim.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

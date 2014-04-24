@@ -26,6 +26,7 @@ namespace xdelta {
 	#define NAMESPACE_STD_BEGIN _STD_BEGIN
 	#define NAMESPACE_STD_END	_STD_END
 	#define hash_map			_STDEXT hash_map
+	#define hash_set			_STDEXT hash_set
 	#ifdef XDELTALIB_EXPORTS
 	#define DLL_EXPORT				__declspec(dllexport)
 	#else
@@ -36,8 +37,10 @@ namespace xdelta {
     #define NAMESPACE_STD_END	}
     #if !defined (__CXX_11__)
     	#define hash_map			__gnu_cxx::hash_map
+		#define hash_set			__gnu_cxx::hash_set
     #else
     	#define hash_map			std::unordered_map
+		#define hash_set			std::unordered_set
     #endif
 	#define O_BINARY            0
 	#define DLL_EXPORT
