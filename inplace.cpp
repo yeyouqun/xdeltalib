@@ -40,7 +40,7 @@
 #include <assert.h>
 
 #include "mytypes.h"
-#include "digest.h"
+#include "md4.h"
 #include "rw.h"
 #include "rollsum.h"
 #include "buffer.h"

@@ -320,7 +320,27 @@
 				>
 			</File>
 			<File
-				RelativePath=".\digest.cpp"
+				RelativePath=".\BigInteger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BigIntegerAlgorithms.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BigIntegerUtils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BigUnsigned.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BigUnsignedInABase.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\fnv64.cpp"
 				>
 			</File>
 			<File
@@ -333,6 +353,14 @@
 			</File>
 			<File
 				RelativePath=".\lz4hc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\md4.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\md5.cpp"
 				>
 			</File>
 			<File
@@ -352,11 +380,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rollsim.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\rollsum.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\rw.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sha1.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\simhash.cpp"
 				>
 			</File>
 			<File
@@ -398,15 +438,39 @@
 				>
 			</File>
 			<File
+				RelativePath=".\BigInteger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BigIntegerAlgorithms.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BigIntegerLibrary.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BigIntegerUtils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BigUnsigned.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BigUnsignedInABase.h"
+				>
+			</File>
+			<File
 				RelativePath=".\buffer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\digest.h"
+				RelativePath=".\fast_mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\fast_mutex.h"
+				RelativePath=".\fnv64.h"
 				>
 			</File>
 			<File
@@ -422,11 +486,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\md4.h"
+				>
+			</File>
+			<File
+				RelativePath=".\md5.h"
+				>
+			</File>
+			<File
 				RelativePath=".\multiround.h"
 				>
 			</File>
 			<File
 				RelativePath=".\mytypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NumberlikeArray.h"
 				>
 			</File>
 			<File
@@ -442,11 +518,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\rollsim.h"
+				>
+			</File>
+			<File
 				RelativePath=".\rollsum.h"
 				>
 			</File>
 			<File
 				RelativePath=".\rw.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sha1.h"
+				>
+			</File>
+			<File
+				RelativePath=".\simhash.h"
 				>
 			</File>
 			<File

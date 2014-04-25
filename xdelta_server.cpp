@@ -46,7 +46,7 @@
 #include "platform.h"
 #include "rw.h"
 #include "rollsum.h"
-#include "digest.h"
+#include "md4.h"
 #include "xdeltalib.h"
 #include "tinythread.h"
 #include "reconstruct.h"

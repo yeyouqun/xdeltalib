@@ -18,8 +18,11 @@ public:
 	rollsim (file_reader & reader) : reader_ (reader), buff_ (BUFLEN)
 	{
 		 // just to inistilize charvalue * prim ^ (hashchars - 1)
-		static init_chararr ic;
+		static const init_chararr ic;
 	}
+	/// \brief
+	/// 计算两个对象之间的相似度，相似度定义为：
+	///  similarity = （A 交 B） / （A 并 B），即两个对象的签名集 A 与 B。
 	float similarity (rollsim<hashchars, prim, modvalue, selector> & compobj)
 	{
 		hash_set<unsigned> h1;
@@ -40,6 +43,8 @@ public:
 		return 	((float)count/sum);
 	}
 private:
+	/// \brief
+	/// 按 Hornor 规则计算多项式的第一个值，后续的值，则通过滚动的方式计算下一个字串的值。
 	BigUnsigned horner(const char * buff)
 	{
 		BigUnsigned hv = 0;
@@ -50,6 +55,8 @@ private:
 
 		return hv;
 	}
+	/// \brief
+	/// 计算文件的签名，有可能产生的 Hash 非常多，不太适用于超大文件。
 	void calc_fingerprints(hash_set<unsigned> & fps)
 	{
 		reader_.open_file ();
