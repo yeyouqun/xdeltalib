@@ -259,7 +259,10 @@ extern const int EOVERFLOW;
 
 // We need some extra help on Win32
 #ifdef _WIN32
+#ifndef EOVERFLOW
 # define EOVERFLOW 84
+#endif
+
 # define ftello    ftell
 # define fseeko    fseek
 #endif

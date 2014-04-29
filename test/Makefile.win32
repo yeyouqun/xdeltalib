@@ -23,12 +23,12 @@ CLIENT_TEST_OBJS = testclient.obj
 all: server client
 
 server: $(SERVER_TEST_OBJS)
-	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:server.exe 
+	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe 
 
 client: $(CLIENT_TEST_OBJS)
-	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:client.exe
+	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe
 
 clean:
 	del *.obj
-	del server.exe client.exe
+	del ..\server.exe ..\client.exe
 	del *.manifest *.exp *.pdb

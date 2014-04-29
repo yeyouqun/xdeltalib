@@ -47,8 +47,10 @@ XDELTA_OBJS =  active_socket.obj \
                 xdelta_server.obj \
                 xxhash.obj \
                 fuzzy.obj \
-                edit_dist.obj
+                edit_dist.obj \
+                fuzzysim.obj
 
+INTDIR=.\objs
 all: share_lib test
 
 .cpp.obj::
