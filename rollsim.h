@@ -13,7 +13,7 @@ template <unsigned hashchars = 40
 		, unsigned selector = 0x00000001>
 class rollsim {
 	enum { BUFLEN = 10 * 1024 * 1024, }; // 10MB
-	struct init_chararr { init_chararr () { init_char_array (); } };
+	struct init_chararr { init_chararr () { init_char_array (chararr_, prim, hashchars); } };
 public:
 	rollsim (file_reader & reader) : reader_ (reader), buff_ (BUFLEN)
 	{
@@ -78,7 +78,7 @@ private:
 				unsigned checksum = (figervalue % modvalue).toUnsignedInt();
 				starthash = false;
 				if ((checksum & selector) == selector)
-					fps.insert(fps.end(), checksum);
+					fps.insert(checksum);
 			}
 
 			int prev = 0;
@@ -87,12 +87,12 @@ private:
 				int charidx = (int)(buff[prev++]);
 				charidx &= 0x000000ff;
 				BigUnsigned t50 = (((int)buff[i]) & 0x000000ff);
-				figervalue -= chararr[charidx]/*val * p ^ (len - 1)*/;
+				figervalue -= chararr_[charidx]/*val * p ^ (len - 1)*/;
 				figervalue *= prim;
 				figervalue += t50;
 				unsigned checksum = (figervalue % modvalue).toUnsignedInt();
 				if ((checksum & selector) == selector)
-					fps.insert(fps.end(), checksum);
+					fps.insert(checksum);
 			}
 			if (buff != &buff[prev])
 				memmove((void*)buff, &buff[prev], i - prev);

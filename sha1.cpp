@@ -35,6 +35,7 @@
  */
 
 #include <string>
+#include <string.h>
 #include "mytypes.h"
 #include "sha1.h"
 

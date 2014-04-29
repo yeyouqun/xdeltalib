@@ -27,6 +27,7 @@ namespace xdelta {
 	#define NAMESPACE_STD_END	_STD_END
 	#define hash_map			_STDEXT hash_map
 	#define hash_set			_STDEXT hash_set
+	
 	#ifdef XDELTALIB_EXPORTS
 	#define DLL_EXPORT				__declspec(dllexport)
 	#else

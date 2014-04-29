@@ -33,7 +33,7 @@
 #include <math.h>
 
 #include "mytypes.h"
-#include "digest.h"
+#include "md4.h"
 #include "buffer.h"
 #include "simple_socket.h"
 #include "passive_socket.h"

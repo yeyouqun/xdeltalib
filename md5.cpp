@@ -27,8 +27,8 @@
  */
 
 #include <sys/types.h>
-#ifndef _WIN32
-#include <sys/systm.h>
+#ifdef _UNIX
+#include <sys/system.h>
 #endif
 #include <string>
 #include <string.h>

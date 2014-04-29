@@ -32,7 +32,7 @@
 namespace xdelta {
 template <unsigned hashchars, unsigned prim
 		, unsigned modvalue, unsigned selector>
-BigUnsigned rollsim<hashchars, prim, modvalue, selector>::chararr_ = { 0 };
+BigUnsigned rollsim<hashchars, prim, modvalue, selector>::chararr_[256];
 
 void init_char_array(BigUnsigned chararr[256], int prim, int hashchars)
 {

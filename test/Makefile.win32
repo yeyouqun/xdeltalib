@@ -1,0 +1,34 @@
+# WATCH OUT!  This makefile is a work in progress.  It is probably missing
+# tons of important things.  DO NOT RELY ON IT TO BUILD A GOOD LIBEVENT.
+
+# Needed for correctness
+# For optimization and warnings
+!IFDEF DEBUG  
+CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /EHsc -D_DEBUG -I..
+!ELSE 
+CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /EHsc -DNDEBUG -I..
+!ENDIF
+
+
+# XXXX have a debug mode
+   
+LIBFLAGS=/nologo
+
+SERVER_TEST_OBJS = testserver.obj
+CLIENT_TEST_OBJS = testclient.obj
+
+.cpp.obj::
+    cl $(CXX_CFLAGS) -c $<
+    
+all: server client
+
+server: $(SERVER_TEST_OBJS)
+	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:server.exe 
+
+client: $(CLIENT_TEST_OBJS)
+	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:client.exe
+
+clean:
+	del *.obj
+	del server.exe client.exe
+	del *.manifest *.exp *.pdb

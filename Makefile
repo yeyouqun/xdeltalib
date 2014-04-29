@@ -10,128 +10,73 @@
 #   $ make clean     Clean the objectives and target.
 ###############################################################################
 
-CFLAGS := -DPIC -fpic -fPIC -Wno-deprecated
-
-
-ifeq ($(P), U32) 
-	CFLAGS += -D_UNIX -m32
-endif
-
-ifeq ($(P), U64)
-	CFLAGS += -D_UNIX -m64
-endif
-
-ifeq ($(P),L32)
-	CFLAGS += -D_LINUX  -m32
-endif
-
-ifeq ($(P),L64)
-	CFLAGS += -D_LINUX  -m64
-endif
-
+CXXFLAGS := -DPIC -fpic -fPIC -Wno-deprecated -m64 -D_LINUX -I..
+# -D_UNIX if you compile it on unix
 EXTRA_CFLAGS :=  -Wall -Wno-format -Wdeprecated-declarations
 
 ifeq ($(STD),1)
 	EXTRA_CFLAGS += -std=c++0x -D__CXX_11__ 
 endif
 
-LDFLAGS += -shared
-
-ifeq ($(P),L32)
-	LDFLAGS += -pthread -m32 -Wl,-rpath,/usr/local/lib
-	TEST_LD_FLAGS := -Wl,-rpath,/usr/local/lib
-endif
-
-ifeq ($(P),L64)
-	LDFLAGS += -pthread -m64 -Wl,-rpath,/usr/local/lib64
-	TEST_LD_FLAGS := -Wl,-rpath,/usr/local/lib64
-endif
-
-ifeq ($(P),U32)
-	LDFLAGS += -lsocket -m32
-endif
-
-ifeq ($(P),U64)
-	LDFLAGS += -lsocket -m64
-endif
-
+LDFLAGS += -shared -pthread -Wl,-rpath,/usr/local/lib
+#-lsocket if you compile on unix.
+#-Wl,-rpath,/usr/local/lib if you have self-installed gcc compiler.
 ifeq ($(DEBUG),1)
 EXTRA_CFLAGS += -g
 else
 EXTRA_CFLAGS += -O2
 endif
 
+SERVER_OBJS = ./test/testserver.o
+CLIENT_OBJS = ./test/testclient.o
+
+XDELTA_OBJS =  active_socket.o \
+                BigInteger.o \
+                BigIntegerAlgorithms.o \
+                BigIntegerUtils.o \
+                BigUnsigned.o \
+                BigUnsignedInABase.o \
+                fnv64.o \
+                inplace.o \
+                lz4.o \
+                lz4hc.o \
+                md4.o \
+                md5.o \
+                multiround.o \
+                passive_socket.o \
+                platform.o \
+                reconstruct.o \
+                rollsim.o \
+                rollsum.o \
+                rw.o \
+                sha1.o \
+                simhash.o \
+                simple_socket.o \
+                stream.o \
+                tinythread.o \
+                xdeltalib.o \
+                xdelta_client.o \
+                xdelta_server.o \
+                xxhash.o
+
 CXX      := g++
 
 
 all: xdelta test-server test-client
 
-digest.o:digest.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
+%.o:%.cpp
+	$(CXX) -I. $(CXXFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
 	
-platform.o:platform.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-xdeltalib.o:xdeltalib.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-rollsum.o:rollsum.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-    
-tinythread.o:tinythread.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-rw.o:rw.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-reconstruct.o:reconstruct.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-multiround.o:multiround.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-
-lz4.o:lz4.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-
-lz4hc.o:lz4hc.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-
-xxhash.o:xxhash.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-inplace.o:inplace.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-active_socket.o:active_socket.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-passive_socket.o:passive_socket.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-simple_socket.o:simple_socket.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-
-xdelta_client.o:xdelta_client.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-
-xdelta_server.o:xdelta_server.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-stream.o:stream.cpp
-	$(CXX) -I. $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
-	
-xdelta: digest.o platform.o xdeltalib.o rollsum.o tinythread.o \
-			 rw.o reconstruct.o multiround.o inplace.o simple_socket.o active_socket.o \
-			 passive_socket.o xdelta_server.o xdelta_client.o stream.o lz4.o lz4hc.o xxhash.o
+xdelta: $(XDELTA_OBJS)
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
-test-server:xdelta testserver.cpp
-	$(CXX) -Wl,-rpath,. -o $@ testserver.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
+test-server:xdelta $(SERVER_OBJS)
+	$(CXX) -Wl,-rpath,. -o server $(SERVER_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
-test-client:xdelta testclient.cpp
-	$(CXX) -Wl,-rpath,. -o $@ testclient.cpp $(CFLAGS)  $(EXTRA_CFLAGS)  \
+test-client:xdelta $(CLIENT_OBJS)
+	$(CXX) -Wl,-rpath,. -o client $(CLIENT_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
-                
+                   
 clean:
-	rm -f *.o libxdelta.so* test-server test-client
+	rm -f *.o libxdelta.so* server client $(SERVER_OBJS) $(CLIENT_OBJS)

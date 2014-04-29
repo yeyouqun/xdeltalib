@@ -1,0 +1,70 @@
+# WATCH OUT!  This makefile is a work in progress.  It is probably missing
+# tons of important things.  DO NOT RELY ON IT TO BUILD A GOOD LIBEVENT.
+
+# Needed for correctness
+# For optimization and warnings
+!IFDEF DEBUG  
+CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /D XDELTALIB_EXPORTS /EHsc -D_DEBUG
+TESTFLAG = "DEBUG=1"
+!ELSE 
+CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /D XDELTALIB_EXPORTS /EHsc -DNDEBUG
+TESTFLAG =
+!ENDIF
+
+
+# XXXX have a debug mode
+
+LIBFLAGS=/nologo Ws2_32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib \
+            comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib \
+            odbc32.lib odbccp32.lib
+
+XDELTA_OBJS =  active_socket.obj \
+                BigInteger.obj \
+                BigIntegerAlgorithms.obj \
+                BigIntegerUtils.obj \
+                BigUnsigned.obj \
+                BigUnsignedInABase.obj \
+                fnv64.obj \
+                inplace.obj \
+                lz4.obj \
+                lz4hc.obj \
+                md4.obj \
+                md5.obj \
+                multiround.obj \
+                passive_socket.obj \
+                platform.obj \
+                reconstruct.obj \
+                rollsim.obj \
+                rollsum.obj \
+                rw.obj \
+                sha1.obj \
+                simhash.obj \
+                simple_socket.obj \
+                stream.obj \
+                tinythread.obj \
+                xdeltalib.obj \
+                xdelta_client.obj \
+                xdelta_server.obj \
+                xxhash.obj \
+                fuzzy.obj \
+                edit_dist.obj
+
+all: share_lib test
+
+.cpp.obj::
+    cl $(CXX_CFLAGS) -c $<
+    
+.c.obj::
+    cl $(CXX_CFLAGS) -c $<
+
+share_lib:$(XDELTA_OBJS)
+	link $(LIBFLAGS) $(XDELTA_OBJS) /out:xdelta.dll /DLL /PDB:"./xdelta.pdb"
+
+test:share_lib
+    cd test
+	$(MAKE) /F Makefile.win32 $(TESTFLAG)
+
+clean:
+    del *.obj xdelta.dll xdelta.lib xdelta_s.lib *.manifest *.exp *.pdb
+    cd test
+	$(MAKE) /F Makefile.win32 clean

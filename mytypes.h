@@ -43,16 +43,12 @@ namespace xdelta {
 	#else
 		#define __WORDSIZE 32
 	#endif
-#pragma warning (disable:4251)
-#elif defined (_LINUX) || defined (_UNIX)
-	#ifdef __GNUC__
-		#if defined (__LP64__) || defined (_LP64)
-			#define __WORDSIZE 64
-		#else
-			#define __WORDSIZE 32
-		#endif
+    #pragma warning (disable:4251)
+#elif defined (__GNUC__)
+	#if defined (__LP64__) || defined (_LP64)
+		#define __WORDSIZE 64
 	#else
-		#error Not support compiler.
+		#define __WORDSIZE 32
 	#endif
 #else
 	#error Current platform not support temporary.
