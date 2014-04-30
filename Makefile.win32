@@ -53,7 +53,7 @@ XDELTA_OBJS =  active_socket.obj \
 INTDIR=.\objs
 all: share_lib test
 
-.cpp.obj::
+.cpp.obj:
     cl $(CXX_CFLAGS) -c $<
     
 .c.obj::
