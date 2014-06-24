@@ -7,14 +7,13 @@
 namespace xdelta {
 class fuzzy {
 public:
-	fuzzy (file_reader & reader) : reader_ (reader), buff_ (BUFLEN) {}
+	fuzzy (file_reader & reader) : reader_ (reader) {}
 	/// \brief
 	/// 返回两个对象之间的相似度，0 ~ 100，当为 100 时，表示完全相似。
 	int similarity (fuzzy & f);
 private:
 	enum { BUFLEN = 10 * 1024 * 1024, }; // 10MB
 	std::string calc_digest ();
-	char_buffer<uchar_t>	buff_;
 	file_reader & reader_;
 };
 

@@ -14,7 +14,7 @@ class rollsim {
 	enum { BUFLEN = 10 * 1024 * 1024, }; // 10MB
 	struct init_chararr { init_chararr () { init_char_array (chararr_, prim, hashchars); } };
 public:
-	rollsim (file_reader & reader) : reader_ (reader), buff_ (BUFLEN)
+	rollsim (file_reader & reader) : reader_ (reader)
 	{
 		 // just to inistilize charvalue * prim ^ (hashchars - 1)
 		static const init_chararr ic;
@@ -59,7 +59,8 @@ private:
 		BigUnsigned figervalue = 0;
 		int pos = 0, toread = BUFLEN;
 
-		char * buff = buff_.begin ();
+	    char_buffer<char_t>	buffer (BUFLEN);
+		char * buff = buffer.begin ();
 		do {
 			char buff[BUFLEN];
 			const int bytes = reader_.read_file (buff.begin () + pos, toread);
@@ -99,7 +100,6 @@ private:
 		return;
 	}
 private:// data members
-	char_buffer<char_t>	buff_;
 	file_reader & reader_;
 	static BigUnsigned chararr_[256];
 };

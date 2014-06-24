@@ -55,13 +55,14 @@ std::string fuzzy::calc_digest ()
 	if (ctx == 0) 
 		 THROW_XDELTA_EXCEPTION_NO_ERRNO ("Out of memory") ; 
 
+	char_buffer<uchar_t> buff (BUFLEN);
 	reader_.open_file () ; 
 	while (true ) { 
-		 int bytes = reader_.read_file (buff_.begin (), (uint32_t)buff_.size ()); 
+		 int bytes = reader_.read_file (buff.begin (), (uint32_t)buff.size ()); 
 		 if (bytes == 0 ) 
 		 	 break ; 
 
-		 if (0 != fuzzy_update (afs.ctx, buff_.begin (), bytes)) 
+		 if (0 != fuzzy_update (afs.ctx, buff.begin (), bytes)) 
 		 	 THROW_XDELTA_EXCEPTION ("fuzzy update failed.") ; 
 	} 
 	char result [FUZZY_MAX_RESULT]; 
