@@ -3,20 +3,19 @@
 
 # Needed for correctness
 # For optimization and warnings
-!IFDEF DEBUG  
+!IF "$(DEBUG)"=="1" 
 CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /D XDELTALIB_EXPORTS /EHsc -D_DEBUG
 TESTFLAG = "DEBUG=1"
+LIBFLAGS=/nologo Ws2_32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib \
+            comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib \
+            odbc32.lib odbccp32.lib /DEBUG /DYNAMICBASE /NXCOMPAT
 !ELSE 
 CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /D XDELTALIB_EXPORTS /EHsc -DNDEBUG
 TESTFLAG =
-!ENDIF
-
-
-# XXXX have a debug mode
-
 LIBFLAGS=/nologo Ws2_32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib \
             comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib \
-            odbc32.lib odbccp32.lib
+            odbc32.lib odbccp32.lib  /INCREMENTAL /DYNAMICBASE /NXCOMPAT
+!ENDIF
 
 XDELTA_OBJS =  active_socket.obj \
                 BigInteger.obj \

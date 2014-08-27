@@ -3,17 +3,17 @@
 
 # Needed for correctness
 # For optimization and warnings
-!IFDEF DEBUG  
+!IF "$(DEBUG)"=="1" 
 CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /EHsc -D_DEBUG -I..
+LIBFLAGS=/nologo /INCREMENTAL /DEBUG /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
 !ELSE 
 CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /EHsc -DNDEBUG -I..
+LIBFLAGS=/nologo /INCREMENTAL /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
 !ENDIF
 
 
 # XXXX have a debug mode
    
-LIBFLAGS=/nologo
-
 SERVER_TEST_OBJS = testserver.obj
 CLIENT_TEST_OBJS = testclient.obj
 
@@ -23,10 +23,10 @@ CLIENT_TEST_OBJS = testclient.obj
 all: server client
 
 server: $(SERVER_TEST_OBJS)
-	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe 
+	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe /PDB:"server.pdb" 
 
 client: $(CLIENT_TEST_OBJS)
-	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe
+	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb" 
 
 clean:
 	del *.obj
