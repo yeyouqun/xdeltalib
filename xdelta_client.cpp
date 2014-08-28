@@ -483,8 +483,16 @@ void xdelta_client::run (file_operator & foperator
 
 	if (thread_nr_ == 0)
 		thread_nr_ = thread::hardware_concurrency () * 2;
-
+#ifdef BIT32_PLATFORM
+	//
+	// 在32位受限系统中，可能由于内存空间不足，有可能导致分配内存失败。因此限定最大
+	// 的线程数，以减少内存分配量。因为在本环境中，每个线程可能占用较大的内存。
+	//
+	if (thread_nr_ > 2)
+		thread_nr_ = 2;
+#else
 	thread_nr_ = thread_nr_ > 256 ? 256 : thread_nr_;
+#endif
 	handshake_header hsh;
 	hsh.error_no = 0;
 	hsh.version = XDELTA_VERSION;

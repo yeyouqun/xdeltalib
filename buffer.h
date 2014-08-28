@@ -58,7 +58,7 @@ public:
 		_bytes_read (0),
 		_ptr(buff),
 		auto_release_ (false) { ; } 
-	 
+
 	~char_buffer()
 	{
 		if (auto_release_)

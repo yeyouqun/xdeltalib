@@ -40,15 +40,19 @@ namespace xdelta {
 #ifdef _WIN32
 	#if defined (_M_X64) || defined (_M_AMD64)
 		#define __WORDSIZE 64
+		#define BIT32_PLATFORM 0
 	#else
 		#define __WORDSIZE 32
+		#define BIT32_PLATFORM 1
 	#endif
     #pragma warning (disable:4251)
 #elif defined (__GNUC__)
 	#if defined (__LP64__) || defined (_LP64)
 		#define __WORDSIZE 64
+		#define BIT32_PLATFORM 0
 	#else
 		#define __WORDSIZE 32
+		#define BIT32_PLATFORM 1
 	#endif
 #else
 	#error Current platform not support temporary.

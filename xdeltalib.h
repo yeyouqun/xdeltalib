@@ -233,8 +233,10 @@ public:
 ///			采用的线程数。
 /// 由于在同步时，如果文件大小或者块大小，没有达到 XDELTA_BUFFER_LEN 长度，则未被使用的地址系统不会分配
 /// 物理内存，因此有时只会占用进程的地址空间，但却不会占用系统的物理内存。
-
-#ifndef MEMORY_LIMIT
+#ifndef BIT32_PLATFORM
+#error "Define BIT32_PLATFORM first, maybe you have to include mytypes.h first!"
+#endif
+#if BIT32_PLATFORM
 	/// 在多轮 Hash 中的最大块长度
 	#define MULTIROUND_MAX_BLOCK_SIZE (1 << 22)
 
