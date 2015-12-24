@@ -16,6 +16,10 @@
 */
 #ifndef __XDELTA_LIB_H__
 #define __XDELTA_LIB_H__
+#ifdef _WIN32
+	#include <stdint.h>
+#else
+#endif
 /// @file
 /// @mainpage xdeltalib 库使用指南
 ///
@@ -491,7 +495,7 @@ inline bool is_no_file_error (const int32_t error_no)
 
 /// 版本宏，在通信时，通过 BT_CLIENT_BLOCK 最开始的两个字节，版本策略
 /// 是向后兼容，并且每次更新增加 1。在可正常接收信息时，向客户端发送版本信息，以及错误信息。
-#define XDELTA_VERSION (1)
+#define XDELTA_VERSION (INT16_C(1))
 /// 版本不匹配
 #define ERR_DISCOMPAT_VERSION (-1)
 #define ERR_UNKNOWN_VERSION (-2)
