@@ -18,17 +18,10 @@ LIBFLAGS=/nologo Ws2_32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib \
 !ENDIF
 
 XDELTA_OBJS =  active_socket.obj \
-                BigInteger.obj \
-                BigIntegerAlgorithms.obj \
-                BigIntegerUtils.obj \
-                BigUnsigned.obj \
-                BigUnsignedInABase.obj \
-                fnv64.obj \
                 inplace.obj \
                 lz4.obj \
                 lz4hc.obj \
                 md4.obj \
-                md5.obj \
                 multiround.obj \
                 passive_socket.obj \
                 platform.obj \
@@ -36,7 +29,6 @@ XDELTA_OBJS =  active_socket.obj \
                 rollsim.obj \
                 rollsum.obj \
                 rw.obj \
-                sha1.obj \
                 simhash.obj \
                 simple_socket.obj \
                 stream.obj \
@@ -44,10 +36,6 @@ XDELTA_OBJS =  active_socket.obj \
                 xdeltalib.obj \
                 xdelta_client.obj \
                 xdelta_server.obj \
-                xxhash.obj \
-                fuzzy.obj \
-                edit_dist.obj \
-                fuzzysim.obj
 
 INTDIR=.\objs
 all: share_lib test

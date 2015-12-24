@@ -31,26 +31,16 @@ SERVER_OBJS = ./test/testserver.o
 CLIENT_OBJS = ./test/testclient.o
 
 XDELTA_OBJS =  active_socket.o \
-                BigInteger.o \
-                BigIntegerAlgorithms.o \
-                BigIntegerUtils.o \
-                BigUnsigned.o \
-                BigUnsignedInABase.o \
-                fnv64.o \
                 inplace.o \
                 lz4.o \
                 lz4hc.o \
-                md4.o \
-                md5.o \
                 multiround.o \
                 passive_socket.o \
                 platform.o \
                 reconstruct.o \
-                rollsim.o \
                 rollsum.o \
                 rw.o \
-                sha1.o \
-                simhash.o \
+						md4.o \
                 simple_socket.o \
                 stream.o \
                 tinythread.o \
