@@ -26,10 +26,8 @@ XDELTA_OBJS =  active_socket.obj \
                 passive_socket.obj \
                 platform.obj \
                 reconstruct.obj \
-                rollsim.obj \
                 rollsum.obj \
                 rw.obj \
-                simhash.obj \
                 simple_socket.obj \
                 stream.obj \
                 tinythread.obj \
@@ -54,6 +52,6 @@ test:share_lib
 	$(MAKE) /F Makefile.win32 $(TESTFLAG)
 
 clean:
-    del *.obj xdelta.dll xdelta.lib xdelta_s.lib *.manifest *.exp *.pdb
+    del *.obj xdelta.dll xdelta.lib xdelta_s.lib *.manifest *.exp *.pdb *.ilk
     cd test
 	$(MAKE) /F Makefile.win32 clean
