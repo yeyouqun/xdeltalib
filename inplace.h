@@ -65,6 +65,7 @@ struct equal_node
 {
 	uint64_t	s_offset;	///< 源文件中的偏移
 	target_pos	tpos;		///< 目标文件中的位置信息
+	void *	 	data;
 	uint32_t	blength:29; ///< 块长度，绝不会超过 MAX_XDELTA_BLOCK_BYTES 或者 MULTIROUND_MAX_BLOCK_SIZE
 	uint32_t	visited:1;  ///< 本对象所表示的块是否已经处理过。
 	uint32_t	stacked:1;	///< 本对象所表示的块是否已经在处理栈中。
@@ -157,9 +158,6 @@ private:
 	/// \brief
 	/// 计算就地构造文件中，相同结点的依赖关系，并对先后顺序进行排序。
 	void _calc_send ();
-	void _handle_node (std::set<equal_node *> & enode_set
-						, equal_node * node
-						, std::list<equal_node*> & result);
 public:
 	in_place_stream (xdelta_stream & output, file_reader & reader)
 		: output_ (output)
@@ -168,6 +166,10 @@ public:
 	~in_place_stream () { _clear (); }
 };
 
+void resolve_inplace_identical_block (std::set<equal_node *> & enode_set
+									, equal_node * node
+									, std::list<equal_node*> & ident_blocks
+									, std::list<diff_node> * diff_blocks = 0);
 
 } // namespace xdelta
 

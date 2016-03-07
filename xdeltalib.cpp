@@ -111,37 +111,44 @@ void hash_table::add_block (const uint32_t fhash, const slow_hash & shash)
 /// \fn read_and_hash()
 /// \brief
 /// 由这个接口实现计算快、慢哈希。
-static void read_and_hash (file_reader & reader
+void read_and_hash (file_reader & reader
 							, hasher_stream & stream
 							, uint64_t to_read_bytes
-							, int32_t blk_len
+							, const int32_t blk_len
 							, uint64_t t_offset
 							, rs_mdfour_t * pctx)
 {
 	//
 	// read huge block one time and calc hash block after block length of f_blk_len;
 	//
-	uint32_t remain, buflen;
+	uint32_t buflen;
 	char_buffer<uchar_t> buf (XDELTA_BUFFER_LEN);
 
 	uint64_t index = 0;
-	uint32_t size;
 	uchar_t * rdbuf = buf.begin ();
-
 	buflen = (uint32_t)(to_read_bytes > XDELTA_BUFFER_LEN ? XDELTA_BUFFER_LEN : to_read_bytes);
-	while (to_read_bytes != 0) {
-		size = reader.read_file (rdbuf, buflen);
-		if (size != buflen) {
-			std::string errmsg = fmt_string ("Can't read file %s(%s)."
-				, reader.get_fname ().c_str (), error_msg ().c_str ());
-			THROW_XDELTA_EXCEPTION (errmsg);
+
+	while (to_read_bytes > 0) {
+		//
+		// to_read_bytes 反应了还可以读取的数据，因此最终一定可以 读取到 buflen 大小的数据。如果不能够，
+		// 则有可能导致这里死循环，或者无限期等待。这在 Bug 的条件下会发生。
+		//
+		uchar_t * endbuf = rdbuf;
+		while (buflen > 0) {
+			int size = reader.read_file (endbuf, buflen);
+			if (size <= 0) {
+				std::string errmsg = "Can't not read file or pipe.";
+				THROW_XDELTA_EXCEPTION (errmsg);
+			}
+
+			if (pctx != 0)
+				rs_mdfour_update(pctx, rdbuf, size);
+
+			to_read_bytes -= size;
+			endbuf += size;
+			buflen -= size;
 		}
 
-		if (pctx != 0)
-			rs_mdfour_update(pctx, rdbuf, size);
-
-		to_read_bytes -= size;
-		const uchar_t * endbuf = rdbuf + size;
 		rdbuf = buf.begin ();
 		while ((int32_t)(endbuf - rdbuf) >= blk_len) {
 			uint32_t fhash = rolling_hasher::hash (rdbuf, blk_len);
@@ -154,7 +161,7 @@ static void read_and_hash (file_reader & reader
 			rdbuf += blk_len;
 		}
 
-		remain = (int32_t)(endbuf - rdbuf);
+		uint32_t remain = (int32_t)(endbuf - rdbuf);
 		if (remain > 0)
 			memmove (buf.begin (), rdbuf, remain);
 
@@ -388,18 +395,25 @@ void read_and_delta (file_reader & reader
 					sentrybuf = buf.begin();
 					uint32_t buflen = XDELTA_BUFFER_LEN - remain;
 					buflen = to_read_bytes > buflen ? buflen : to_read_bytes;
-					uint32_t size = reader.read_file(sentrybuf + remain, buflen);
-
-					if (size != buflen) {
-						std::string errmsg = fmt_string("Can't read file %s(%s)."
-							, reader.get_fname().c_str(), error_msg().c_str());
-						THROW_XDELTA_EXCEPTION(errmsg);
-					}
-
-					to_read_bytes -= size;
-					endbuf = sentrybuf + remain + size;
 					rdbuf = sentrybuf;
-					remain += size;
+					endbuf = sentrybuf + remain;
+					//
+					// 读取文件时，如果 reader 是文件，则一次就可读完，如果是管道，则可能需要多次才能将数读取完成，
+					// 由于 hole 的大小，反映了数据的大小，而 to_read_bytes 反应了还可以读取的数据，因此最终一定可以
+					// 读取到 buflen 大小的数据。如果不能够，则有可能导致这里死循环，或者无限期等待。这在 Bug 的条件
+					// 下会发生。
+					//
+					while (buflen > 0) {
+						int size = reader.read_file(sentrybuf + remain, buflen);
+						if (size <= 0) {
+							std::string errmsg = "Can't not read file or pipe.";
+							THROW_XDELTA_EXCEPTION (errmsg);
+						}
+						to_read_bytes -= size;
+						buflen -= size;
+						endbuf += size;
+						remain += size;
+					}
 					continue;
 				}
 			}
@@ -496,7 +510,7 @@ end:
 }
 
 ////////////////////////////////////////////////////////////////////////////
-uint32_t get_xdelta_block_size (const uint64_t filesize)
+static uint32_t xdelta_sum_block_size (const uint64_t filesize)
 {
 	double blk_size = log ((double)filesize)/log ((double)2);
 	blk_size *= pow ((double)filesize, 1.0/3);
@@ -514,6 +528,43 @@ uint32_t get_xdelta_block_size (const uint64_t filesize)
 
 	return i_blk_size;
 }
+
+
+static uint32_t rsync_sum_sizes_sqroot(uint64_t len)
+{
+	uint32_t blength;
+	int64_t l;
+
+	if (len <= XDELTA_BLOCK_SIZE * XDELTA_BLOCK_SIZE)
+		blength = XDELTA_BLOCK_SIZE;
+	else {
+		int32_t max_blength = MAX_XDELTA_BLOCK_BYTES;
+		int32_t c;
+		int cnt;
+		for (c = 1, l = len, cnt = 0; l >>= 2; c <<= 1, cnt++) {}
+		if (c < 0 || c >= max_blength)
+			blength = max_blength;
+		else {
+		    blength = 0;
+		    do {
+			    blength |= c;
+			    if (len < (int64_t)blength * blength)
+				    blength &= ~c;
+			    c >>= 1;
+		    } while (c >= 8);	/* round to multiple of 8 */
+		    blength = MAX(blength, XDELTA_BLOCK_SIZE);
+		}
+	}
+
+	return blength;
+}
+
+uint32_t get_xdelta_block_size (const uint64_t filesize)
+{
+	return rsync_sum_sizes_sqroot (filesize);
+}
+
+
 
 void DLL_EXPORT get_file_digest (file_reader & reader
 								, uchar_t digest[DIGEST_BYTES])

@@ -27,7 +27,7 @@ class multiround_hasher_stream;
 /// 多轮 Hash 中的文件重构器。
 class DLL_EXPORT multiround_reconstructor : public reconstructor
 {
-	std::set<hole_t> *	target_hole_;	///< 目标文件同，在重要中会不断进行计算更新。
+	std::set<hole_t> *	target_hole_;	///< 目标文件洞，在同步中会不断进行计算更新。
 public:
 	multiround_reconstructor (file_operator & foperator) 
 								: reconstructor (foperator)

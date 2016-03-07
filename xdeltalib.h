@@ -71,7 +71,7 @@ struct target_pos
 {
 	uint64_t	t_offset;		///< Hash 值在目标文件的文件，index 基于这个值来表示。
 								///< 本参数只在多轮 Hash 时才会用到，其他情况下为 0。
-	uint64_t	index;          ///< Hash 数据块的块索引值。
+	uint32_t	index;          ///< Hash 数据块的块索引值。
 };
 
 /// \struct
@@ -87,6 +87,7 @@ struct hole_t
 {
 	uint64_t offset;		///< 文件的偏移。
 	uint64_t length;		///< 文件洞的长度。
+	hole_t () : offset (0), length (0) {}
 };
 
 } // namespace xdelta
@@ -120,7 +121,8 @@ public:
 	/// \param[in] fname	文件名，带相对路径
 	/// \param[in] blk_len	处理文件的块长度
 	/// \return 没有返回
-	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len) = 0;
+	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len)
+		{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 输出一个相同块的块信息记录
 	/// \param[in] tpos		块在目标文件中的位置信息。
@@ -129,7 +131,7 @@ public:
 	/// \return 没有返回
 	virtual void add_block (const target_pos & tpos
 							, const uint32_t blk_len
-							, const uint64_t s_offset) = 0;
+							, const uint64_t s_offset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 输出一个差异的块数据到流中。
 	/// \param[in] data		差异数据块指针。
@@ -138,12 +140,12 @@ public:
 	/// \return 没有返回
 	virtual void add_block (const uchar_t * data
 							, const uint32_t blk_len
-							, const uint64_t s_offset) = 0;
+							, const uint64_t s_offset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示下一轮 Hash 流开始。
 	/// \param[in] blk_len		下一轮 Hash 的块长度。
 	/// \return 没有返回
-	virtual void next_round (const int32_t blk_len) = 0;
+	virtual void next_round (const int32_t blk_len) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 本接口仅在多轮计算中，如果第一轮所计算的 Hash 相同，不再需要进行后续的多轮计算时
 	/// 调用，在其他的情况下调用都是错误的。其主要是向服务器发送停止后续多轮计算的信息。
@@ -151,23 +153,23 @@ public:
 	/// \brief
 	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
 	/// \return 没有返回
-	virtual void end_one_round () = 0;
+	virtual void end_one_round () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示结束一个文件的 Hash 流的处理。
 	/// \param[in] filsize		源文件的大小。
 	/// \return 没有返回
-	virtual void end_hash_stream (const uint64_t filsize) = 0;
+	virtual void end_hash_stream (const uint64_t filsize) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示处理过程中的错误。
 	/// \param[in] errmsg		错误信息。
 	/// \param[in] errorno		错误码。
 	/// \return 没有返回
-	virtual void on_error (const std::string & errmsg, const int errorno) = 0;
+	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 在多轮 Hash 中设置源文件洞对象。
 	/// \param[in] holeset		文件洞集合对像。
 	/// \return 没有返回
-	virtual void set_holes (std::set<hole_t> * holeset) = 0;
+	virtual void set_holes (std::set<hole_t> * holeset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 class DLL_EXPORT hasher_stream 
@@ -179,49 +181,53 @@ public:
 	/// \param[in] fname	文件名，带相对路径
 	/// \param[in] blk_len	处理文件的块长度
 	/// \return 没有返回
-	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len) = 0;
+	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len)
+		{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 输出一个块数据的快、慢 Hash 值。
 	/// \param[in] fhash		快 Hash 值。
 	/// \param[in] shash		慢 Hash 值。
-	virtual void add_block (const uint32_t fhash, const slow_hash & shash) = 0;
+	virtual void add_block (const uint32_t fhash, const slow_hash & shash)
+	 { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示结束一个文件的 Hash 流的处理。
 	/// \param[in] filsize		源文件的大小。
 	/// \return 没有返回
-	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize) = 0;
+	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize) 
+	{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示结束多轮 Hash 中第一轮，其相应结果相当于单轮 Hash 中的 end_hash_stream。
 	/// \param[in] file_hash		整个文件的 MD4 Hash 值。
 	/// \return 如果源文件中判断需要继续下一轮，则返回真，否则返回假。
-	virtual bool end_first_round (const uchar_t file_hash[DIGEST_BYTES]) = 0;
+	virtual bool end_first_round (const uchar_t file_hash[DIGEST_BYTES])
+	 { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return false; }
 	/// \brief
 	/// 指示下一轮 Hash 流开始。
 	/// \param[in] blk_len		下一轮 Hash 的块长度。
 	/// \return 没有返回
-	virtual void next_round (const int32_t blk_len) = 0;
+	virtual void next_round (const int32_t blk_len) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
 	/// \return 没有返回
-	virtual void end_one_round () = 0;
+	virtual void end_one_round () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示处理过程中的错误。
 	/// \param[in] errmsg		错误信息。
 	/// \param[in] errorno		错误码。
 	/// \return 没有返回
-	virtual void on_error (const std::string & errmsg, const int errorno) = 0;
+	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 在多轮 Hash 中设置目标文件洞对象。
 	/// \param[in] holeset		文件洞集合对像。
 	/// \return 没有返回
-	virtual void set_holes (std::set<hole_t> * holeset) = 0;
+	virtual void set_holes (std::set<hole_t> * holeset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 /// 在单轮 Hash 中的最小块长度
 #define XDELTA_BLOCK_SIZE 400
 
 /// 在单轮 Hash 中的最大块长度
-#define MAX_XDELTA_BLOCK_BYTES ((int32_t)1 << 17) //128KB
+#define MAX_XDELTA_BLOCK_BYTES ((xdelta::int32_t)1 << 20) // 1024KB
 
 /// 在一些内存受限系统中，如果下面的参数定义得很多，有可能导致内存耗用过多，使系统
 /// 运行受到影响，甚至是宕机，所以，当你需要你的目标系统的内存特性后，请你自己定义相应的
@@ -563,6 +569,20 @@ inline char_buffer<char_type> & operator >> (char_buffer<char_type> & buff, hand
 		char_buffer<uchar_t> tmp(buff.begin(), STACK_BUFF_LEN); \
 		tmp << header;											\
 	}while (0)
+	
+void read_and_hash (file_reader & reader
+							, hasher_stream & stream
+							, uint64_t to_read_bytes
+							, const int32_t blk_len
+							, uint64_t t_offset
+							, rs_mdfour_t * pctx);
+							
+void read_and_delta (file_reader & reader
+					, xdelta_stream & stream
+					, const hash_table & hashes
+					, std::set<hole_t> & hole_set
+					, const int blk_len
+					, bool need_split_hole);
 } // namespace xdelta
 #endif /*__XDELTA_LIB_H__*/
 

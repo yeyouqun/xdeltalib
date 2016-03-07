@@ -65,7 +65,7 @@ std::string DLL_EXPORT error_msg ();
 /// \brief 从输入的文件名取得临时文件名。
 /// \param[in] fname   输入的文件名。
 /// \return 临时文件名。
-std::string get_tmp_fname (const std::string & fname);
+std::string DLL_EXPORT get_tmp_fname (const std::string & fname);
 
 #ifdef _WIN32
 #define SEPERATOR "\\"

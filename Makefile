@@ -29,6 +29,7 @@ endif
 
 SERVER_OBJS = ./test/testserver.o
 CLIENT_OBJS = ./test/testclient.o
+TESTCAPI_OBJS = ./test/testcapi.o
 
 XDELTA_OBJS =  active_socket.o \
                 inplace.o \
@@ -47,12 +48,13 @@ XDELTA_OBJS =  active_socket.o \
                 xdeltalib.o \
                 xdelta_client.o \
                 xdelta_server.o \
-                xxhash.o
+                xxhash.o \
+                capi.o \
 
 CXX      := g++
 
 
-all: xdelta test-server test-client
+all: xdelta test
 
 %.o:%.cpp
 	$(CXX) -I. $(CXXFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<
@@ -61,12 +63,17 @@ xdelta: $(XDELTA_OBJS)
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
 test-server:xdelta $(SERVER_OBJS)
+
+                
+test:xdelta $(CLIENT_OBJS)  $(SERVER_OBJS)  $(TESTCAPI_OBJS)
+	$(CXX) -Wl,-rpath,. -o client $(CLIENT_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
+                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
+                
 	$(CXX) -Wl,-rpath,. -o server $(SERVER_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
-test-client:xdelta $(CLIENT_OBJS)
-	$(CXX) -Wl,-rpath,. -o client $(CLIENT_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
+	$(CXX) -Wl,-rpath,. -o testcapi $(TESTCAPI_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
-                   
+                  
 clean:
-	rm -f *.o libxdelta.so* server client $(SERVER_OBJS) $(CLIENT_OBJS)
+	rm -f *.o libxdelta.so* server client testcapi $(SERVER_OBJS) $(CLIENT_OBJS) $(TESTCAPI_OBJS)

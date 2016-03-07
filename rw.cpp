@@ -35,12 +35,7 @@
 #include "rw.h"
 
 namespace xdelta {
-static uint64_t seek_file (
-#ifdef _WIN32
-						   HANDLE handle,
-#else
-						   int fd, 
-#endif
+static uint64_t seek_file (HANDLE handle,
 						   uint64_t offset, int whence, const std::string & filename)
 {
 #ifdef _WIN32
@@ -62,11 +57,11 @@ static uint64_t seek_file (
 	
 	return (offset | ((int64_t)hiOffset << 32));
 #else
-	if (fd == -1) {
+	if (handle == -1) {
 		std::string errmsg ("File not open.");
 		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
-	off_t res = lseek (fd, offset, whence);
+	off_t res = lseek (handle, offset, whence);
 	if (res == -1) {
 		std::string errmsg = fmt_string ("Can't seek file %s.", filename.c_str ());
 		THROW_XDELTA_EXCEPTION (errmsg);
@@ -94,10 +89,10 @@ void f_local_freader::open_file ()
 		THROW_XDELTA_EXCEPTION (errmsg);
 	}
 #else
-	if (f_fd_ > 0)
+	if (f_handle_ > 0)
 		return;
-	f_fd_ = open (f_name_.c_str (), O_RDONLY | O_BINARY);
-	if (f_fd_ < 0) {
+	f_handle_ = open (f_name_.c_str (), O_RDONLY | O_BINARY);
+	if (f_handle_ < 0) {
 		std::string errmsg = fmt_string ("Can't not open file %s.", f_name_.c_str ());
 		THROW_XDELTA_EXCEPTION (errmsg);
 	}
@@ -127,33 +122,36 @@ bool f_local_freader::exist_file () const
 	return xdelta::exist_file (f_name_);
 }
 
-int f_local_freader::read_file (uchar_t * data, const uint32_t len)
+
+int local_read (HANDLE handle, uchar_t * data, const uint32_t len)
 {
 	if (data == 0 || len == 0) {
 		std::string errmsg ("Parameter(s) not correct");
 		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
-#ifdef _WIN32
-	if (f_handle_ == INVALID_HANDLE_VALUE) {
+	
+	if (handle == INVALID_HANDLE_VALUE) {
 		std::string errmsg ("File not open.");
 		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
+#ifdef _WIN32	
 	uint32_t bytes;
-	int result = ::ReadFile (f_handle_, data, len, (LPDWORD)&bytes, NULL);
+	int result = ::ReadFile (handle, data, len, (LPDWORD)&bytes, NULL);
 	
 	if (result == FALSE) {
-		std::string errmsg = fmt_string ("Can't read file %s", f_name_.c_str ());
+		std::string errmsg = fmt_string ("Can't read file, %s", error_msg ().c_str ());
 		THROW_XDELTA_EXCEPTION (errmsg);
 	}
 
 	return (int)bytes;
 #else
-	if (f_fd_ == -1) {
-		std::string errmsg ("File not open.");
-		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
-	}
-	return read (f_fd_, data, len);
+	return read (handle, data, len);
 #endif
+}
+
+int f_local_freader::read_file (uchar_t * data, const uint32_t len)
+{
+	return local_read (f_handle_, data, len);
 }
 
 #ifdef _WIN32
@@ -203,22 +201,28 @@ void f_local_freader::close_file ()
 		f_handle_ = INVALID_HANDLE_VALUE;
 	}
 #else
-	if (f_fd_ != -1) {
-		close (f_fd_);
-		f_fd_ = -1;
+	if (f_handle_ != -1) {
+		close (f_handle_);
+		f_handle_ = -1;
 	}
 #endif
 }
 
 f_local_freader::f_local_freader (const std::string & path, const std::string & fname) : 
-#ifdef _WIN32
 					f_handle_ (INVALID_HANDLE_VALUE), 
-#else
-					f_fd_ (-1), 
-#endif
 					f_name_ (path + SEPERATOR + fname),
 					f_path_ (path),
 					f_filename_ (fname)
+{
+}
+
+static inline size_t get_sep_pos (const std::string & f) { return f.rfind (SEPERATOR); }
+
+f_local_freader::f_local_freader (const std::string & fullname) :
+					f_handle_ (INVALID_HANDLE_VALUE), 
+					f_name_ (fullname) ,
+					f_path_ (fullname.substr (0, get_sep_pos(fullname))) ,
+					f_filename_ (fullname.substr (get_sep_pos(fullname) + 1))
 {
 }
 
@@ -229,11 +233,7 @@ f_local_freader::~f_local_freader ()
 
 uint64_t f_local_freader::seek_file (const uint64_t offset, const int whence)
 {
-#ifdef _WIN32
 	return xdelta::seek_file (f_handle_, offset, whence, f_name_);
-#else
-	return xdelta::seek_file (f_fd_, offset, whence, f_name_);
-#endif
 }
 
 //////////// f_local_fwriter
@@ -303,13 +303,13 @@ open_again:
 		}
 	}
 #else
-	if (f_fd_ > 0)
+	if (f_handle_ > 0)
 		return;
 	int flag = O_WRONLY | O_BINARY;
 	int mode = 0;
 open_again:
-	f_fd_ = open (f_name_.c_str (), flag, mode);
-	if (f_fd_ < 0) {
+	f_handle_ = open (f_name_.c_str (), flag, mode);
+	if (f_handle_ < 0) {
 		if (errno == ENOENT) {
 			flag = O_CREAT | O_EXCL | O_RDWR | O_BINARY;
 			mode = S_IREAD | S_IWRITE;
@@ -359,11 +359,11 @@ int f_local_fwriter::write_file (const uchar_t * data, const uint32_t length)
 
 	return len;
 #else
-	if (f_fd_ == -1) {
+	if (f_handle_ == -1) {
 		std::string errmsg ("File not open.");
 		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);
 	}
-	return write (f_fd_, data, len);
+	return write (f_handle_, data, len);
 #endif
 }
 
@@ -377,6 +377,14 @@ uint64_t f_local_fwriter::get_file_size () const
 #endif
 }
 
+uint64_t tell_file_size (const std::string & filename)
+{
+	f_local_freader r (filename);
+	file_reader * p = &r;
+	p->open_file ();
+	return p->get_file_size ();
+}
+
 
 void f_local_fwriter::close_file ()
 {
@@ -386,31 +394,31 @@ void f_local_fwriter::close_file ()
 		f_handle_ = INVALID_HANDLE_VALUE;
 	}
 #else
-	if (f_fd_ != -1) {
-		close (f_fd_);
-		f_fd_ = -1;
+	if (f_handle_ != -1) {
+		close (f_handle_);
+		f_handle_ = -1;
 	}
 #endif
 }
 
 uint64_t f_local_fwriter::seek_file (uint64_t offset, int whence)
 {
-#ifdef _WIN32
 	return xdelta::seek_file (f_handle_, offset, whence, f_name_);
-#else
-	return xdelta::seek_file (f_fd_, offset, whence, f_name_);
-#endif
 }
 
 f_local_fwriter::f_local_fwriter (const std::string & path, const std::string & fname) : 
-#ifdef _WIN32
 					f_handle_ (INVALID_HANDLE_VALUE), 
-#else
-					f_fd_ (-1), 
-#endif
 					f_name_ (path + SEPERATOR + fname),
 					f_path_ (path),
 					f_filename_ (fname)
+{
+}
+
+f_local_fwriter::f_local_fwriter (const std::string & fullname) :
+					f_handle_ (INVALID_HANDLE_VALUE), 
+					f_name_ (fullname),
+					f_path_ (fullname.substr (0, get_sep_pos(fullname))) ,
+					f_filename_ (fullname.substr (get_sep_pos(fullname) + 1))
 {
 }
 
@@ -436,7 +444,7 @@ void f_local_fwriter::set_file_size (uint64_t filsize)
 	}
 	BOOL success = SetEndOfFile (f_handle_);
 #else
-	int success = ftruncate (f_fd_, filsize);
+	int success = ftruncate (f_handle_, filsize);
 	success = success == 0 ? 1 : 0;
 #endif
 	if (!success) {

@@ -16,19 +16,17 @@ LIBFLAGS=/nologo /INCREMENTAL /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
    
 SERVER_TEST_OBJS = testserver.obj
 CLIENT_TEST_OBJS = testclient.obj
+TESTCAPI_TEST_OBJS = testcapi.obj
 
 .cpp.obj::
     cl $(CXX_CFLAGS) -c $<
     
-all: server client
-
-server: $(SERVER_TEST_OBJS)
+all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS)
 	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe /PDB:"server.pdb" 
-
-client: $(CLIENT_TEST_OBJS)
-	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb" 
+	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb"
+	link $(LIBFLAGS) $(TESTCAPI_TEST_OBJS) ../xdelta.lib /out:../testcapi.exe /PDB:"testcapi.pdb" 
 
 clean:
 	del *.obj
-	del ..\server.exe ..\client.exe
+	del ..\server.exe ..\client.exe ..\testcapi.exe
 	del *.manifest *.exp *.pdb

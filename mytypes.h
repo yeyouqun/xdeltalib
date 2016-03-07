@@ -68,6 +68,9 @@ namespace xdelta {
 	#define ssize_t size_t
 #else
     typedef int            SOCKET;
+    typedef int			   HANDLE;
+	#define INVALID_HANDLE_VALUE  (-1)
+	#define CloseHandle close
 #endif
 
 

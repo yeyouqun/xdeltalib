@@ -24,6 +24,8 @@
 	#include <windows.h>
 	#include <functional>
 	#include <hash_map>
+	#include <io.h>
+	#include <time.h>
 #else
 	#include <unistd.h>
 	#include <memory>
@@ -79,17 +81,26 @@ std::string error_msg ()
 
 std::string get_tmp_fname (const std::string & fname)
 {
+	//
+	// 这里要特别注意，不能这么来写代码：
+	// temp = "xdeltaXXXXXX";
+	// char * result = _mktemp (temp);
+	// 上面的代码会有 Bug，因为 temp 是一个常量字符，编译器可能会把它放在 ro.data 的段中
+	// 而 _mktemp 会修改这个变量，则会在这里产生一个权限不匹配的问题。
+	//
+	char temp[13];
+	strcpy (temp, "xdeltaXXXXXX");
+
 #ifdef _WIN32
-	char tmp[MAX_PATH + 1];
-	const char * strp;
-	GetTempFileNameA (".", "xdelta", 1, tmp);
-	if (strp = strstr (tmp, ".\\"))
-		return fname + "-" + (tmp + 2);
-	return fname + "-" + tmp;
+	char * result = _mktemp (temp);
+	if (result == 0)
+		return fname + "-" + fmt_string ("xdelta-%lld", time (0));
+	return fname + "-" + temp;
 #else
-	char tmparray [] = "/tmp/-XXXXXX";
-	mkstemp (tmparray); 
-	return fname + basename (tmparray);
+	int result = mkstemp (temp); 
+	if (result == 0)
+		return fname + "-" + temp;
+	return fname + "-" + fmt_string ("xdelta-%lld", time (0));
 #endif
 }
 

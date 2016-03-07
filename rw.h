@@ -29,33 +29,35 @@ public:
 	/// \brief
 	/// 打开文件对象。
 	/// \return 没有返回
-	virtual void open_file () = 0;
+	virtual void open_file () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 读取文件。
 	/// \param[out] data	数据缓冲区。
 	/// \param[in] len		读文件的长度。
 	/// \return 返回读取的字节数。
-	virtual int read_file (uchar_t * data, const uint32_t len) = 0;
+	virtual int read_file (uchar_t * data, const uint32_t len) 
+	{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); return -1 ;}
 	/// \brief
 	/// 关闭文件。
 	/// \return 没有返回
-	virtual void close_file () = 0;
+	virtual void close_file () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 取得文件名。
 	/// \return 文件名。
-	virtual std::string get_fname () const = 0;
+	virtual std::string get_fname () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return std::string (); }
 	/// \brief
 	/// 取文件大小。
 	/// \return 文件大小
-	virtual uint64_t get_file_size () const = 0;
+	virtual uint64_t get_file_size () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return -1 ; }
 	/// \brief
 	/// 设置文件读指针。
 	/// \return 返回指针位置。
-	virtual uint64_t seek_file (const uint64_t offset, const int whence) = 0;
+	virtual uint64_t seek_file (const uint64_t offset, const int whence)
+	 { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return -1 ; }
 	/// \brief
 	/// 判断文件是否存在。
 	/// \return 如果存在，则返回 true，如果不存在，或者无法打开，则返回 false。
-	virtual bool exist_file () const = 0;
+	virtual bool exist_file () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return false; }
 };
 /// \class
 /// \brief 文件写基类，你需要重写你自己平台的文件写类。
@@ -66,37 +68,37 @@ public:
 	/// 打开文件对象。
 	/// \return 没有返回
 	/// \throw 如果出错，会选出 xdelta_exception 异常。
-	virtual void open_file () = 0;
+	virtual void open_file () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 写文件。
 	/// \param[out] data	数据缓冲区。
 	/// \param[in] len		写文件的长度。
 	/// \return 返回写入的字节数。
-	virtual int write_file (const uchar_t * data, const uint32_t len) = 0;
+	virtual int write_file (const uchar_t * data, const uint32_t len) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 关闭文件。
 	/// \return 没有返回
-	virtual void close_file () = 0;
+	virtual void close_file () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 取得文件名。
 	/// \return 文件名。
-	virtual std::string get_fname () const = 0;
+	virtual std::string get_fname () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 取文件大小。
 	/// \return 文件大小
-	virtual uint64_t get_file_size () const = 0;
+	virtual uint64_t get_file_size () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 设置文件写指针。
 	/// \return 返回指针位置。
-	virtual uint64_t seek_file (uint64_t offset, int whence) = 0;
+	virtual uint64_t seek_file (uint64_t offset, int whence) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 判断文件是否存在。
 	/// \return 如果存在，则返回 true，如果不存在，或者无法打开，则返回 false。
-	virtual bool exist_file () const = 0;
+	virtual bool exist_file () const { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 设置文件大小，如果小于文件原大小，则截断，否则，再写时，将从新写。可能导致文件洞（视平台）。
 	/// \return 无返回。
-	virtual void set_file_size (uint64_t filszie) = 0;
+	virtual void set_file_size (uint64_t filszie) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 /// \class
@@ -110,18 +112,17 @@ class DLL_EXPORT f_local_freader : public file_reader {
 	virtual uint64_t seek_file (const uint64_t offset, const int whence);
 	virtual bool exist_file () const;
 private:
-#ifdef _WIN32
 	HANDLE f_handle_;
-#else
-	int f_fd_;
-#endif
 	const std::string f_name_;
 	const std::string f_path_;
 	const std::string f_filename_;
 public:
 	f_local_freader (const std::string & path, const std::string & fname);
+	f_local_freader (const std::string & fullname);
 	~f_local_freader();
 };
+
+int local_read (HANDLE handle, uchar_t * data, const uint32_t len);
 
 /// \class
 /// 本地文件操作类型。
@@ -135,16 +136,13 @@ class DLL_EXPORT f_local_fwriter : public file_writer {
 	virtual bool exist_file () const;
 	virtual void set_file_size (uint64_t filszie);
 private:
-#ifdef _WIN32
 	HANDLE f_handle_;
-#else
-	int f_fd_;
-#endif
 	const std::string f_name_;
 	const std::string f_path_;
 	const std::string f_filename_;
 public:
 	f_local_fwriter (const std::string & path, const std::string & fname);
+	f_local_fwriter (const std::string & fullname);
 	~f_local_fwriter();
 };
 
@@ -187,7 +185,8 @@ public:
 	virtual void rm_file (const std::string & filename) = 0; 
 };
 
-bool exist_file (const std::string & filename);
+DLL_EXPORT bool exist_file (const std::string & filename);
+DLL_EXPORT uint64_t tell_file_size (const std::string & filename);
 
 /// \class
 /// 本地文件操作类型。
