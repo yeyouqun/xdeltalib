@@ -181,8 +181,6 @@ static void clear_hash_xdelta_result (ihx_t * pihx)
 		CloseHandle (pihx->wr);
 		pihx->wr = INVALID_HANDLE_VALUE;
 	}
-
-	pihx->table.clear ();
 }
 
 class pipe_xdelta_stream : public xdelta_stream
@@ -350,6 +348,8 @@ xit_t * xdelta_get_xdeltas_free_inner (void * inner_data)
 		return 0;
 		
 	clear_hash_xdelta_result (pihx);
+	
+	pihx->table.clear ();
 		
 	xit_t * head = pihx->xhead;
 	delete pihx;
