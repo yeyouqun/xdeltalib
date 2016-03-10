@@ -71,7 +71,6 @@ extern "C"
 		unsigned char	 slow_hash[DIGEST_BYTES]; // 16 Bytes
 		unsigned long long t_offset; //target offset;
 		unsigned t_index; // block index, 基于 t_offset。之所以采用这么复杂的结构，是为了与多轮计算使用相同的代码。
-		#define HASH_ITEM_SIZE 36
 		struct hash_item * next;
 	}hit_t;
 
@@ -94,7 +93,6 @@ extern "C"
 									 // 可以从该处读取 blklen 长度的数据来生成同步的临时文件。
 		unsigned index;				 // 相对于 t_offset  的索引，索引大小为 blklen；
 		unsigned blklen; 	// 数据块的长度。
-		#define XDELTA_ITEM_SIZE 22
 		struct xdelta_item * next;
 	}xit_t;
 
@@ -114,19 +112,20 @@ extern "C"
 	 */
 	/**
 	 * 开始一轮 HASH 计算。
-	 * @return 	返回一个内部使用的数据结构的指针，并用在 calc_hash， get_hash_result_and_free_inner_data 接口中。
-	 */
-	DLL_EXPORT void * xdelta_start_hash ();
-	/**
-	 * 使用如下接口计算指定数据流的快慢 HASH 值。
 	 * @blklen		计算哈希的块长度。最大的块长不能超过 MAX_XDELTA_BLOCK_BYTES(1mb)，最小不得小于 
 	 *				XDELTA_BLOCK_SIZE(400) 字节。
+	 * @return 	返回一个内部使用的数据结构的指针，并用在 calc_hash， get_hash_result_and_free_inner_data 接口中。
+	 */
+	DLL_EXPORT void * xdelta_start_hash (unsigned blklen);
+	/**
+	 * 使用如下接口计算指定数据流的快慢 HASH 值。
+	 *
 	 * @ptgthole	 所计算的哈希是属于哪个洞（目标文件洞）。如果是单轮差异计算，则这个洞就是整个文件（0，filesize）。
 	 * @inner_data	 内部数据，在调用 get_hash_result_and_free_inner_data 时需要用到。
 	 * @return		返回一个可以写的管道句柄。调用者可以利用这个句柄，将对应的洞的数据传递给库的接口。
 	 *				调用都必须保证数据与洞的一一对应关系，否则会出现数据错误，或者未定义的行为。
 	 */
-	DLL_EXPORT PIPE_HANDLE xdelta_run_hash (unsigned blklen, fh_t * ptgthole, void * inner_data);
+	DLL_EXPORT PIPE_HANDLE xdelta_run_hash (fh_t * ptgthole, void * inner_data);
 	
 	/**
 	 * 取得最近一次 xdelta_calc_hash 执行循环的执行结果。
@@ -146,6 +145,8 @@ extern "C"
 	/**
 	 * 针对每个文件计算差异数据时，必须按如下步骤进行：
 	 *
+	 *  @blklen		哈希块所对应的数据块的长度。内部需要用这个参数来计算数据移动窗口。这个参数值
+	 *				必须与在同一轮中调用 xdelta_start_hash 时输出的参数一样。
 	 *  @head		哈希数据块，xdelta_get_hash_result_and_free_inner_data 接口返回的数据 
 	 *				在接口返回后，这个对象将全部被释放，调用者不能再使用这个
 	 *				对象进行接口调用或者操作其中的数据。
@@ -153,19 +154,18 @@ extern "C"
 	 *				接口使用。
 	 *
 	 */
-	DLL_EXPORT void * xdelta_start_xdelta (hit_t * head);
+	DLL_EXPORT void * xdelta_start_xdelta (hit_t * head, unsigned blklen);
 	
 	/**
 	 * 当正确执行了 xdelta_start_xdelta 后，调用本接口。本接口用来执行差异数据计算。
 	 * 
-	 *  @blklen		哈希块所对应的数据块的长度。内部需要用这个参数来计算数据移动窗口。
 	 *  @srchole	源文件的洞，在多轮计算中，有可能源文件会生成多个洞。
 	 *  @inner_data	内部数据，由 xdelta_start_xdelta 接口产生。
 	 *  @return		返回一个用于向里写数所的句柄。使用者通过这个句柄将要分析的数据写入
 	 *				到这个句柄中。写的数据长度必须是 srchole 的长度，否则要么是程序死锁，
 	 *				会者会导致分析结果不正确。所以用户要保证数据长度的匹配。
 	 */
-	DLL_EXPORT PIPE_HANDLE xdelta_run_xdelta (unsigned blklen, fh_t * srchole, void * inner_data);
+	DLL_EXPORT PIPE_HANDLE xdelta_run_xdelta (fh_t * srchole, void * inner_data);
 
 	/**
 	 * 取得最近一次 xdelta_run_xdelta 执行循环的执行结果。

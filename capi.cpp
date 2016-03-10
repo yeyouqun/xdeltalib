@@ -243,19 +243,20 @@ static void inner_xdelta (void *data)
 
 using namespace xdelta;
 
-void * xdelta_start_hash ()
-{
-	ihx_t * pihx = new ihx_t;
-	return (void*)pihx;
-}
-
-PIPE_HANDLE xdelta_run_hash (unsigned blklen, fh_t * phole, void * inner_data)
+void * xdelta_start_hash (unsigned blklen)
 {
 	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
 		errno = 22;
 		return INVALID_HANDLE_VALUE;
 	}
 	
+	ihx_t * pihx = new ihx_t;
+	pihx->blklen = blklen;
+	return (void*)pihx;
+}
+
+PIPE_HANDLE xdelta_run_hash (fh_t * phole, void * inner_data)
+{
 	ihx_t * pihx = (ihx_t *)(inner_data);
 	clear_hash_xdelta_result (pihx);
 
@@ -265,7 +266,6 @@ PIPE_HANDLE xdelta_run_hash (unsigned blklen, fh_t * phole, void * inner_data)
 		create_pipe (&pihx->rd, &pihx->wr);
 		pihx->hole.offset = phole->pos;
 		pihx->hole.length = phole->len;
-		pihx->blklen = blklen;
 		wr = pihx->wr;
 
 		pihx->pthread = new thread (inner_calc_hash, (void*)pihx);
@@ -294,10 +294,16 @@ hit_t * xdelta_get_hashes_free_inner (void * inner_data)
 
 /****************************************** Xdelta *********************************/
 
-void * xdelta_start_xdelta (hit_t * head)
+void * xdelta_start_xdelta (hit_t * head, unsigned blklen)
 {
 	//Todo: ..
+	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
+		errno = 22;
+		return INVALID_HANDLE_VALUE;
+	}
+	
 	ihx_t * pihx = new ihx_t;
+	pihx->blklen = blklen;
 	
 	for (;head != 0;head = head->next) {
 		slow_hash sh;
@@ -310,14 +316,8 @@ void * xdelta_start_xdelta (hit_t * head)
 	return (void*)pihx;
 }
 	
-PIPE_HANDLE xdelta_run_xdelta (unsigned blklen, fh_t * srchole, void * inner_data)
+PIPE_HANDLE xdelta_run_xdelta (fh_t * srchole, void * inner_data)
 {
-	//Todo: ..
-	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
-		errno = 22;
-		return INVALID_HANDLE_VALUE;
-	}
-	
 	ihx_t * pihx = (ihx_t *)(inner_data);
 	clear_hash_xdelta_result (pihx);
 
@@ -328,7 +328,6 @@ PIPE_HANDLE xdelta_run_xdelta (unsigned blklen, fh_t * srchole, void * inner_dat
 		wr = pihx->wr;
 		pihx->hole.offset = srchole->pos;
 		pihx->hole.length = srchole->len;
-		pihx->blklen = blklen;
 
 		pihx->pthread = new thread (inner_xdelta, (void*)pihx);
 	}

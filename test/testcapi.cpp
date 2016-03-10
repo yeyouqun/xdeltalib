@@ -232,9 +232,9 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	hit_t * hash_result = 0;
 	
 	SYNC_START();
-	void *inner_data = xdelta_start_hash ();
+	void *inner_data = xdelta_start_hash (blklen);
 	if (head.len > 0) {
-		PIPE_HANDLE wh = xdelta_run_hash (blklen, &head, inner_data);
+		PIPE_HANDLE wh = xdelta_run_hash (&head, inner_data);
 		ptgtreader->seek_file (head.pos, FILE_BEGIN);
 		if (handle_this_node (&head, ptgtreader, wh) != 0) {
 			hit_t * hash_result = xdelta_get_hashes_free_inner (inner_data);
@@ -244,14 +244,14 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	}
 		
 	hash_result = xdelta_get_hashes_free_inner (inner_data);
-	inner_data = xdelta_start_xdelta (hash_result);
+	inner_data = xdelta_start_xdelta (hash_result, blklen);
 	xdelta_free_hashes (hash_result);
 
 	head.pos = 0;
 	head.len = psrcreader->get_file_size ();
 		
 	if (head.len > 0) {
-		PIPE_HANDLE wh = xdelta_run_xdelta (blklen, &head, inner_data);
+		PIPE_HANDLE wh = xdelta_run_xdelta (&head, inner_data);
 		psrcreader->seek_file (head.pos, FILE_BEGIN);
 
 		if (handle_this_node (&head, psrcreader, wh) != 0) {
@@ -351,10 +351,10 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 	unsigned minimal_blklen = XDELTA_BLOCK_SIZE;
 	SYNC_START();
 	for (;;) {
-		void *inner_data = xdelta_start_hash ();
+		void *inner_data = xdelta_start_hash (blklen);
 		for (fh_t * head = tgthole; head != 0; head = head->next) {
 			if (head->len > 0) {
-				PIPE_HANDLE wh = xdelta_run_hash (blklen, head, inner_data);
+				PIPE_HANDLE wh = xdelta_run_hash (head, inner_data);
 				ptgtreader->seek_file (head->pos, FILE_BEGIN);
 				if (handle_this_node (head, ptgtreader, wh) != 0) {
 					hit_t * hash_result = xdelta_get_hashes_free_inner (inner_data);
@@ -365,12 +365,12 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 		}
 		
 		hash_result = xdelta_get_hashes_free_inner (inner_data);
-		inner_data = xdelta_start_xdelta (hash_result);
+		inner_data = xdelta_start_xdelta (hash_result, blklen);
 		xdelta_free_hashes (hash_result);
 		
 		for (fh_t * head = srchole; head != 0; head = head->next) {
 			if (head->len > 0) {
-				PIPE_HANDLE wh = xdelta_run_xdelta (blklen, head, inner_data);
+				PIPE_HANDLE wh = xdelta_run_xdelta (head, inner_data);
 				psrcreader->seek_file (head->pos, FILE_BEGIN);
 
 				if (handle_this_node (head, psrcreader, wh) != 0) {
@@ -481,9 +481,9 @@ void test_single_round_inplace (const std::string & srcfile, const std::string &
 	hit_t * hash_result = 0;
 	
 	SYNC_START();
-	void *inner_data = xdelta_start_hash ();
+	void *inner_data = xdelta_start_hash (blklen);
 	if (head.len > 0) {
-		PIPE_HANDLE wh = xdelta_run_hash (blklen, &head, inner_data);
+		PIPE_HANDLE wh = xdelta_run_hash (&head, inner_data);
 		ptgtreader->seek_file (head.pos, FILE_BEGIN);
 		if (handle_this_node (&head, ptgtreader, wh) != 0) {
 			hit_t * hash_result = xdelta_get_hashes_free_inner (inner_data);
@@ -493,14 +493,14 @@ void test_single_round_inplace (const std::string & srcfile, const std::string &
 	}
 		
 	hash_result = xdelta_get_hashes_free_inner (inner_data);
-	inner_data = xdelta_start_xdelta (hash_result);
+	inner_data = xdelta_start_xdelta (hash_result, blklen);
 	xdelta_free_hashes (hash_result);
 
 	head.pos = 0;
 	head.len = psrcreader->get_file_size ();
 		
 	if (head.len > 0) {
-		PIPE_HANDLE wh = xdelta_run_xdelta (blklen, &head, inner_data);
+		PIPE_HANDLE wh = xdelta_run_xdelta (&head, inner_data);
 		psrcreader->seek_file (head.pos, FILE_BEGIN);
 
 		if (handle_this_node (&head, psrcreader, wh) != 0) {
@@ -602,8 +602,5 @@ int main (int argn, char ** argc)
 	else
 		return 0;
 
-#ifdef _WIN32
-	system ("pause");
-#endif
     return 0;
 }
