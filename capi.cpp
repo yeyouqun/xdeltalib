@@ -247,7 +247,7 @@ void * xdelta_start_hash (unsigned blklen)
 {
 	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
 		errno = 22;
-		return INVALID_HANDLE_VALUE;
+		return 0;
 	}
 	
 	ihx_t * pihx = new ihx_t;
@@ -299,7 +299,7 @@ void * xdelta_start_xdelta (hit_t * head, unsigned blklen)
 	//Todo: ..
 	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
 		errno = 22;
-		return INVALID_HANDLE_VALUE;
+		return 0;
 	}
 	
 	ihx_t * pihx = new ihx_t;
