@@ -176,9 +176,7 @@ void in_place_stream::_calc_send ()
 
 	std::set<equal_node *>	enode_set;
 	std::copy (equal_nodes_.begin (), equal_nodes_.end ()
-				, std::inserter (enode_set, enode_set.end ())); // 为了便于快速查找。
-	//std::for_each (equal_nodes_.begin (), equal_nodes_.end ()
-	//	, [&](equal_node * n)->void {enode_set.insert (n); }); // 为了便于快速查找。
+				, std::inserter (enode_set, enode_set.end ()));
 
 	for (it_t pos = equal_nodes_.begin (); pos != equal_nodes_.end (); ++pos)
 		resolve_inplace_identical_block (enode_set, *pos, result, &diff_nodes_);
@@ -285,65 +283,4 @@ void resolve_inplace_identical_block (std::set<equal_node *> & enode_set
 	node->visited = TRUE;
 	return;
 }
-//	if (node->stacked == TRUE) { // cyclic condition, convert it to adding bytes to target.
-//		diff_node dn;
-//		dn.blength = node->blength;
-//		dn.s_offset = node->s_offset;
-//		diff_blocks.push_back (dn);
-//		enode_set.erase (node);
-//		node->deleted = TRUE;
-//		return;
-//	}
-//
-//	if (node->visited == TRUE || node->deleted == TRUE)
-//		return;
-//
-//	//
-//	// 如果两个块索引是相同的，就说明这个块没有经过移动。
-//	// 这里的查找逻辑是这样的：
-//	// enode_set 已经按照其所在的目标文件的块索引经过排序了（set 的特性）：
-//	// 现在某个目标块在可以移动前，需要以 s_offset 为目标位置查找，是否有某个块在这个块影响之下，
-//	// 因此要将这个块先处理。如果覆盖的块，有一边是自己，则不需要处理这一边。
-//	//
-//	uint64_t left_index = node->s_offset / node->blength, 
-//			right_index = (node->s_offset - 1 + node->blength) / node->blength;
-//
-//	equal_node enode;
-//	enode = *node;
-//	enode.tpos.index = left_index;
-//
-//	typedef std::set<equal_node*>::iterator it_t;
-//	// to forge a node, only t_index member will be used.
-//	it_t pos = enode_set.find (&enode);
-//	//
-//	// to check if this equal node is overlap with one and/or its 
-//	// directly following block on target.先处理左边
-//	//
-//	if (pos != enode_set.end () && *pos != node) {
-//		node->stacked = TRUE;
-//		resolve_inplace_identical_block (enode_set, *pos, ident_blocks, diff_blocks);
-//		node->stacked = FALSE;
-//	}
-//
-//	//
-//	// 再处理右边。
-//	//
-//	if (node->deleted == FALSE) {
-//		enode.tpos.index = right_index;
-//		pos = enode_set.find (&enode);
-//		if (pos != enode_set.end () && *pos != node) {
-//			node->stacked = TRUE;
-//			resolve_inplace_identical_block (enode_set, *pos, ident_blocks, diff_blocks);
-//			node->stacked = FALSE;
-//		}
-//	}
-//	// this node's all dependencies have been resolved.
-//	// so push the node to the back, and when return from this call,
-//	// blocks depend on this node will be pushed to the back just behind
-//	// its dependent block.
-//	if (node->deleted == FALSE) {
-//		ident_blocks.push_back (node);
-//		node->visited = TRUE;
-//	}
-//	return;
 } //namespace xdelta

@@ -157,14 +157,16 @@ extern "C"
 	
 	/**
 	 * 当正确执行了 xdelta_start_xdelta 后，调用本接口。本接口用来执行差异数据计算。
-	 *
+	 * 
 	 *  @blklen		哈希块所对应的数据块的长度。内部需要用这个参数来计算数据移动窗口。
 	 *  @srchole	源文件的洞，在多轮计算中，有可能源文件会生成多个洞。
 	 *  @inner_data	内部数据，由 xdelta_start_xdelta 接口产生。
-	 *  @return		无返回。
+	 *  @return		返回一个用于向里写数所的句柄。使用者通过这个句柄将要分析的数据写入
+	 *				到这个句柄中。写的数据长度必须是 srchole 的长度，否则要么是程序死锁，
+	 *				会者会导致分析结果不正确。所以用户要保证数据长度的匹配。
 	 */
 	DLL_EXPORT PIPE_HANDLE xdelta_run_xdelta (unsigned blklen, fh_t * srchole, void * inner_data);
-	
+
 	/**
 	 * 取得最近一次 xdelta_run_xdelta 执行循环的执行结果。
 	 * @inner_data	 	内部数据，调用时 calc_hash 产生。在接口返回后，这个对象将全部被释放，调用者不能再使用这个

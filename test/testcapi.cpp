@@ -136,7 +136,7 @@ int handle_this_node (const fh_t * head, file_reader * preader, PIPE_HANDLE wr)
 {
 	char_buffer<uchar_t> databuf (BUFSIZE);
 	
-	unsigned b2r = head->len;
+	unsigned b2r = (unsigned)head->len;
 	while (b2r > 0) {
 		int size = 0;
 		unsigned readlen = b2r > BUFSIZE ? BUFSIZE : b2r;
