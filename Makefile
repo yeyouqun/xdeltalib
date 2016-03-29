@@ -30,6 +30,7 @@ endif
 SERVER_OBJS = ./test/testserver.o
 CLIENT_OBJS = ./test/testclient.o
 TESTCAPI_OBJS = ./test/testcapi.o
+SIMILARITY_OBJS = ./test/similarity.o
 
 XDELTA_OBJS =  active_socket.o \
                 inplace.o \
@@ -65,7 +66,7 @@ xdelta: $(XDELTA_OBJS)
 test-server:xdelta $(SERVER_OBJS)
 
                 
-test:xdelta $(CLIENT_OBJS)  $(SERVER_OBJS)  $(TESTCAPI_OBJS)
+test:xdelta $(CLIENT_OBJS)  $(SERVER_OBJS)  $(TESTCAPI_OBJS) $(SIMILARITY_OBJS)
 	$(CXX) -Wl,-rpath,. -o client $(CLIENT_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
@@ -74,6 +75,10 @@ test:xdelta $(CLIENT_OBJS)  $(SERVER_OBJS)  $(TESTCAPI_OBJS)
                 
 	$(CXX) -Wl,-rpath,. -o testcapi $(TESTCAPI_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
+                
+	$(CXX) -Wl,-rpath,. -o similarity $(SIMILARITY_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
+                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                   
 clean:
-	rm -f *.o libxdelta.so* server client testcapi $(SERVER_OBJS) $(CLIENT_OBJS) $(TESTCAPI_OBJS)
+	rm -f *.o libxdelta.so* server client testcapi similarity $(SERVER_OBJS) $(CLIENT_OBJS) \
+	$(TESTCAPI_OBJS) $(SIMILARITY_OBJS)

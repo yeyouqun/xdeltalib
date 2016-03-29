@@ -17,16 +17,18 @@ LIBFLAGS=/nologo /INCREMENTAL /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
 SERVER_TEST_OBJS = testserver.obj
 CLIENT_TEST_OBJS = testclient.obj
 TESTCAPI_TEST_OBJS = testcapi.obj
+SIMILARITY_OBJS = similarity.obj
 
 .cpp.obj::
     cl $(CXX_CFLAGS) -c $<
     
-all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS)
+all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS) $(SIMILARITY_OBJS)
 	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe /PDB:"server.pdb" 
 	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb"
 	link $(LIBFLAGS) $(TESTCAPI_TEST_OBJS) ../xdelta.lib /out:../testcapi.exe /PDB:"testcapi.pdb" 
+	link $(LIBFLAGS) $(SIMILARITY_OBJS) ../xdelta.lib /out:../similarity.exe /PDB:"similarity.pdb" 
 
 clean:
 	del *.obj
-	del ..\server.exe ..\client.exe ..\testcapi.exe
+	del ..\server.exe ..\client.exe ..\testcapi.exe ..\similarity.exe
 	del *.manifest *.exp *.pdb
