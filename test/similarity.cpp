@@ -165,15 +165,17 @@ struct sync_stat
 
 #define SYNC_IDENT(h) s.identical_nr++;s.identical_bytes += (h)->blklen
 #define SYNC_DIFF(h) s.different_nr++;s.different_bytes += (h)->blklen
-#define SYNC_END() s.end = time (0); \
-					s.identical_nr /= 2;  \ 
-					s.identical_bytes /= 2; \
-					s.different_nr /= 2;   \
-					s.different_bytes /= 2; \
+
+#define SYNC_END() do { s.end = time (0); \
+					s.identical_nr /= 2; \
+					s.identical_bytes /= 2;\
+					s.different_nr /= 2;\
+					s.different_bytes /= 2;\
 					printf ("Time:%20llu\n", s.end - s.start); \
 					printf ("Identical bytes:%20lld\tidentical nr:%20lld\n", s.identical_bytes, s.identical_nr); \
 					printf ("Different:%20lld\tdifferent nr:%20lld\n", s.different_bytes, s.different_nr); \
 					printf ("Radio(ident/(ident+diff)):%.6f\n", ((float)(s.identical_bytes))/(s.identical_bytes + s.different_bytes)); \
+				}while(0)
 
 
 ///////////////////////////////////////////////////////////////
