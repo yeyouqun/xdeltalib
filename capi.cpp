@@ -166,6 +166,9 @@ static void inner_calc_hash (void *data)
 
 static void clear_hash_xdelta_result (ihx_t * pihx)
 {
+	if (pihx == 0)
+		return;
+
 	if (pihx->pthread != 0) {
 		pihx->pthread->join ();
 		delete pihx->pthread;

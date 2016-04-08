@@ -114,7 +114,8 @@ extern "C"
 	 * 开始一轮 HASH 计算。
 	 * @blklen		计算哈希的块长度。最大的块长不能超过 MAX_XDELTA_BLOCK_BYTES(1mb)，最小不得小于 
 	 *				XDELTA_BLOCK_SIZE(400) 字节。
-	 * @return 	返回一个内部使用的数据结构的指针，并用在 calc_hash， get_hash_result_and_free_inner_data 接口中。
+	 * @return 		返回一个内部使用的数据结构的指针，并用在 calc_hash， get_hash_result_and_free_inner_data 接口中。
+	 *				当块大小不在上面的数值范围内时，会返回一个空指针。使用者应该检查返回值，再往后执行。
 	 */
 	DLL_EXPORT void * xdelta_start_hash (unsigned blklen);
 	/**
@@ -151,7 +152,7 @@ extern "C"
 	 *				在接口返回后，这个对象将全部被释放，调用者不能再使用这个
 	 *				对象进行接口调用或者操作其中的数据。
 	 *  @return		返回一个内部使用的数据结构的指针，并在 xdelta_run_xdelta， xdelta_get_xdelta_result_and_free_inner_data
-	 *				接口使用。
+	 *				接口使用。使用者应该检查返回值为非空，再往后执行。
 	 *
 	 */
 	DLL_EXPORT void * xdelta_start_xdelta (hit_t * head, unsigned blklen);
