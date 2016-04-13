@@ -100,12 +100,18 @@ typedef struct inner_hash_xdelta_result_type
 	PIPE_HANDLE wr;
 	hole_t	 	hole;
 	uint32_t	blklen;
-	hash_table	table;
+	hash_table	table;			// 在计算差异时使用的哈希表。
+	
+	diff_func_t diffcb;	// 在计算差异数据时的回调函数。
+	void * cbpriv;		// 回调函数的数据。
+
 	inner_hash_xdelta_result_type () :
 		pthread (0),
 		rd (INVALID_HANDLE_VALUE),
 		wr (INVALID_HANDLE_VALUE),
-		blklen (-1)
+		blklen(-1),
+		diffcb(0),
+		cbpriv (0)
 		{
 			xhead = 0;
 			xtail = 0;
@@ -223,7 +229,10 @@ class pipe_xdelta_stream : public xdelta_stream
 							, const uint32_t blk_len
 							, const uint64_t s_offset)
 	{
-		add_block (DT_DIFF, 0, s_offset, blk_len, -1);
+		if (pihx_->diffcb != 0)
+			pihx_->diffcb((char *)data, blk_len, s_offset, pihx_->cbpriv);
+		else
+			add_block (DT_DIFF, 0, s_offset, blk_len, -1);
 	}
 public:	
 	pipe_xdelta_stream (ihx_t * pihx) : pihx_ (pihx) {}
@@ -297,7 +306,9 @@ hit_t * xdelta_get_hashes_free_inner (void * inner_data)
 
 /****************************************** Xdelta *********************************/
 
-void * xdelta_start_xdelta (hit_t * head, unsigned blklen)
+void * xdelta_start_xdelta(hit_t * head, unsigned blklen
+						, diff_func_t diffcb
+						, void * cbpriv)
 {
 	//Todo: ..
 	if (blklen > MAX_XDELTA_BLOCK_BYTES || XDELTA_BLOCK_SIZE > blklen) {
@@ -316,6 +327,8 @@ void * xdelta_start_xdelta (hit_t * head, unsigned blklen)
 		pihx->table.add_block (head->fast_hash, sh);
 	}
 
+	pihx->diffcb = diffcb;
+	pihx->cbpriv = cbpriv;
 	return (void*)pihx;
 }
 	

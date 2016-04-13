@@ -18,17 +18,20 @@ SERVER_TEST_OBJS = testserver.obj
 CLIENT_TEST_OBJS = testclient.obj
 TESTCAPI_TEST_OBJS = testcapi.obj
 SIMILARITY_OBJS = similarity.obj
+DIFF_CALLBACK = testdiffcb.obj
 
 .cpp.obj::
     cl $(CXX_CFLAGS) -c $<
     
-all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS) $(SIMILARITY_OBJS)
+all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS) \
+							 $(SIMILARITY_OBJS) $(DIFF_CALLBACK)
 	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe /PDB:"server.pdb" 
 	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb"
 	link $(LIBFLAGS) $(TESTCAPI_TEST_OBJS) ../xdelta.lib /out:../testcapi.exe /PDB:"testcapi.pdb" 
 	link $(LIBFLAGS) $(SIMILARITY_OBJS) ../xdelta.lib /out:../similarity.exe /PDB:"similarity.pdb" 
+	link $(LIBFLAGS) $(DIFF_CALLBACK) ../xdelta.lib /out:../testdiffcb.exe /PDB:"testdiffcb.pdb" 
 
 clean:
 	del *.obj
-	del ..\server.exe ..\client.exe ..\testcapi.exe ..\similarity.exe
+	del ..\server.exe ..\client.exe ..\testcapi.exe ..\similarity.exe ..\testdiffcb.exe
 	del *.manifest *.exp *.pdb

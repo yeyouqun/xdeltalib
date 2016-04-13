@@ -227,7 +227,7 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	}
 		
 	hash_result = xdelta_get_hashes_free_inner (inner_data);
-	inner_data = xdelta_start_xdelta (hash_result, blklen);
+	inner_data = xdelta_start_xdelta (hash_result, blklen, 0, 0);
 	xdelta_free_hashes (hash_result);
 
 	head.pos = 0;

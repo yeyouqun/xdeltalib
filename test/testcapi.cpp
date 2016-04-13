@@ -233,6 +233,9 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	
 	SYNC_START();
 	void *inner_data = xdelta_start_hash (blklen);
+	if (inner_data == 0)
+		return;
+
 	if (head.len > 0) {
 		PIPE_HANDLE wh = xdelta_run_hash (&head, inner_data);
 		ptgtreader->seek_file (head.pos, FILE_BEGIN);
@@ -244,7 +247,7 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	}
 		
 	hash_result = xdelta_get_hashes_free_inner (inner_data);
-	inner_data = xdelta_start_xdelta (hash_result, blklen);
+	inner_data = xdelta_start_xdelta (hash_result, blklen, 0, 0);
 	xdelta_free_hashes (hash_result);
 
 	head.pos = 0;
@@ -262,6 +265,8 @@ void test_single_round (const std::string & srcfile, const std::string & tgtfile
 	}
 		
 	xdelta_result = xdelta_get_xdeltas_free_inner (inner_data);
+	if (xdelta_result == 0)
+		return;
 		
 	for (xit_t * p = xdelta_result; p != 0; p = p->next) {
 		if (p->type == DT_IDENT) {
@@ -352,6 +357,9 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 	SYNC_START();
 	for (;;) {
 		void *inner_data = xdelta_start_hash (blklen);
+		if (inner_data == 0)
+			return;
+
 		for (fh_t * head = tgthole; head != 0; head = head->next) {
 			if (head->len > 0) {
 				PIPE_HANDLE wh = xdelta_run_hash (head, inner_data);
@@ -365,7 +373,7 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 		}
 		
 		hash_result = xdelta_get_hashes_free_inner (inner_data);
-		inner_data = xdelta_start_xdelta (hash_result, blklen);
+		inner_data = xdelta_start_xdelta (hash_result, blklen, 0, 0);
 		xdelta_free_hashes (hash_result);
 		
 		for (fh_t * head = srchole; head != 0; head = head->next) {
@@ -382,6 +390,9 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 		}
 		
 		xdelta_result = xdelta_get_xdeltas_free_inner (inner_data);
+		if (xdelta_result == 0)
+			return;
+
 		for (xit_t * head = xdelta_result; head != 0; head = head->next) {
 			if (head->type == DT_IDENT) {
 				SYNC_IDENT(head);
@@ -395,7 +406,7 @@ void test_multiple_round (const std::string & srcfile, const std::string & tgtfi
 			}
 		}
 		
-		blklen /= 2; // 减少一半再执行一轮，直到最小大小。
+		blklen /= 2; // 减少一半再执行一轮，直到最小块大小。
 		if (blklen >= minimal_blklen) {
 			for (xit_t * head = xdelta_result; head != 0; head = head->next) {
 				if (head->type == DT_IDENT) {
@@ -482,6 +493,9 @@ void test_single_round_inplace (const std::string & srcfile, const std::string &
 	
 	SYNC_START();
 	void *inner_data = xdelta_start_hash (blklen);
+	if (inner_data == 0)
+		return;
+
 	if (head.len > 0) {
 		PIPE_HANDLE wh = xdelta_run_hash (&head, inner_data);
 		ptgtreader->seek_file (head.pos, FILE_BEGIN);
@@ -493,7 +507,7 @@ void test_single_round_inplace (const std::string & srcfile, const std::string &
 	}
 		
 	hash_result = xdelta_get_hashes_free_inner (inner_data);
-	inner_data = xdelta_start_xdelta (hash_result, blklen);
+	inner_data = xdelta_start_xdelta (hash_result, blklen, 0, 0);
 	xdelta_free_hashes (hash_result);
 
 	head.pos = 0;
@@ -511,6 +525,9 @@ void test_single_round_inplace (const std::string & srcfile, const std::string &
 	}
 		
 	xdelta_result = xdelta_get_xdeltas_free_inner (inner_data);
+	if (xdelta_result == 0)
+		return;
+
 	xdelta_resolve_inplace (&xdelta_result);
 		
 	for (xit_t * p = xdelta_result; p != 0; p = p->next) {
