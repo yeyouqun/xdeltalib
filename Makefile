@@ -31,7 +31,7 @@ SERVER_OBJS = ./test/testserver.o
 CLIENT_OBJS = ./test/testclient.o
 TESTCAPI_OBJS = ./test/testcapi.o
 SIMILARITY_OBJS = ./test/similarity.o
-DIFF_CALLBACK = ./test/testdiffcb.obj
+DIFF_CALLBACK = ./test/testdiffcb.o
 
 XDELTA_OBJS =  active_socket.o \
                 inplace.o \

@@ -229,10 +229,10 @@ class pipe_xdelta_stream : public xdelta_stream
 							, const uint32_t blk_len
 							, const uint64_t s_offset)
 	{
+		add_block (DT_DIFF, 0, s_offset, blk_len, -1);
 		if (pihx_->diffcb != 0)
 			pihx_->diffcb((char *)data, blk_len, s_offset, pihx_->cbpriv);
-		else
-			add_block (DT_DIFF, 0, s_offset, blk_len, -1);
+		return;
 	}
 public:	
 	pipe_xdelta_stream (ihx_t * pihx) : pihx_ (pihx) {}
