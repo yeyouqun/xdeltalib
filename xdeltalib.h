@@ -324,36 +324,6 @@ public:
 	virtual void hash_it (file_reader & reader, hasher_stream & stream) const;
 };
 
-class DLL_EXPORT multiround_hash_table : public hash_table
-{
-	/// \brief 开始第一轮 Hash
-	/// \param[in] reader	文件对象。
-	/// \param[in] stream	Hash 流对像。
-	/// \param[in] holes	目标文件的当前洞
-	/// \return			返回当轮的块长度，如果返回 -1，表示不需要再执行下一轮。
-	int32_t _hasher_first_round (file_reader & reader
-								, hasher_stream & stream
-								, std::set<hole_t> & holes) const;
-	/// \brief 开始下一轮 Hash
-	/// \param[in] reader	文件对象。
-	/// \param[in] stream	Hash 流对像。
-	/// \param[in] holes	目标文件的当前洞。
-	/// \param[in] blk_len	本轮 Hash 的块长度。
-	/// \return			无返回
-	void _next_round (file_reader & reader
-							, hasher_stream & stream
-							, std::set<hole_t> & holes
-							, const int32_t blk_len) const;
-	/// \brief
-	/// 生成文件的 Hash 对，并流化输出。
-	/// \param[in] reader	文件对象，数据从这个文件对像中读取数据。
-	/// \param[in] stream	流化对象。
-	/// \return	No return
-	virtual void hash_it (file_reader & reader, hasher_stream & stream) const;
-public:
-	multiround_hash_table () {}
-	~multiround_hash_table () {}
-};
 
 /// \class
 /// 此类用于根据接收到的 Hash 表将输入的文件对象执行差异数据提出，并通过 xdelta_stream
