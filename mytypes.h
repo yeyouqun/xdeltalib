@@ -94,7 +94,7 @@ typedef short				int16_t;
   #define FALSE 0
 #endif
 
-class DLL_EXPORT xdelta_exception : public ::std::exception
+class xdelta_exception : public ::std::exception
 {
     std::string what_;
     int         errno_;
@@ -184,6 +184,7 @@ static inline void delete_obj (obj_t * pobj)
 										, mesg, __FILE__, __LINE__);\
 		THROW_XDELTA_EXCEPTION_NO_ERRNO (errmsg);\
 }while (0)
+
 
 } //namespace xdelta
 #endif //__MYTYPES_H__

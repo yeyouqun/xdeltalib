@@ -36,14 +36,11 @@ namespace xdelta {
 #else
 	#define NAMESPACE_STD_BEGIN namespace std {
     #define NAMESPACE_STD_END	}
-    #if !defined (__CXX_11__)
-    	#define hash_map			__gnu_cxx::hash_map
-		#define hash_set			__gnu_cxx::hash_set
-    #else
-    	#define hash_map			std::unordered_map
-		#define hash_set			std::unordered_set
-    #endif
-	#define O_BINARY            0
+
+	#ifndef O_BINARY
+		#define O_BINARY            0
+	#endif
+	
 	#define DLL_EXPORT
 	#define FILE_BEGIN SEEK_SET
 	#define FILE_CURRENT SEEK_CUR 
@@ -130,20 +127,20 @@ std::string DLL_EXPORT get_tmp_fname (const std::string & fname);
 /* File Macros                                                               */
 /*                                                                           */
 /*---------------------------------------------------------------------------*/
-#define STRUCT_STAT         struct stat
-#define LSTAT(x,y)          lstat(x,y)
-#define FILE_HANDLE         FILE *
-#define CLEARERR(x)         clearerr(x)
-#define FCLOSE(x)           fclose(x)
-#define FEOF(x)             feof(x)
-#define FERROR(x)           ferror(x)
-#define FFLUSH(x)           fflush(x)
-#define FILENO(s)           fileno(s)
-#define FOPEN(x,y)          fopen(x, y)
-#define FREAD(a,b,c,d)      fread(a, b, c, d)
-#define FSTAT(s, st)        fstat(FILENO(s), st)
-#define FWRITE(a,b,c,d)     fwrite(a, b, c, d)
-#define STAT_BLK_SIZE(x)    ((x).st_blksize)
+//#define STRUCT_STAT         struct stat
+//#define LSTAT(x,y)          lstat(x,y)
+//#define FILE_HANDLE         FILE *
+//#define CLEARERR(x)         clearerr(x)
+//#define FCLOSE(x)           fclose(x)
+//#define FEOF(x)             feof(x)
+//#define FERROR(x)           ferror(x)
+//#define FFLUSH(x)           fflush(x)
+//#define FILENO(s)           fileno(s)
+//#define FOPEN(x,y)          fopen(x, y)
+//#define FREAD(a,b,c,d)      fread(a, b, c, d)
+//#define FSTAT(s, st)        fstat(FILENO(s), st)
+//#define FWRITE(a,b,c,d)     fwrite(a, b, c, d)
+//#define STAT_BLK_SIZE(x)    ((x).st_blksize)
 
 
 /*---------------------------------------------------------------------------*/

@@ -18,7 +18,9 @@
 #ifdef _WIN32
 	#include <windows.h>
 	#include <functional>
+	#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 	#include <hash_map>
+		
 	#include <errno.h>
 	#include <io.h>
 	#include <direct.h>
@@ -26,13 +28,15 @@
 	#include <unistd.h>
 	#include <memory>
 	#include <ext/functional>
-    #if !defined (__CXX_11__)
-    	#include <ext/hash_map>
-    #else
-    	#include <unordered_map>
-    #endif
     #include <memory.h>
     #include <stdio.h>
+	#if !defined (__CXX_11__)
+		#include <ext/hash_map>
+	#else
+		#include <ext/unordered_map>
+		#define hash_map			std::unordered_map
+		#define hash_set			std::unordered_set
+	#endif
 #endif
 
 #include <algorithm>
@@ -47,17 +51,94 @@
 #include "buffer.h"
 #include "platform.h"
 #include "md4.h"
-#include "platform.h"
-#include "tinythread.h"
 #include "rw.h"
 #include "rollsum.h"
 #include "xdeltalib.h"
-#include "reconstruct.h"
-#include "inplace.h"
-
 #include "capi.h"
 
 namespace xdelta {
+struct equal_node
+{
+	uint64_t	s_offset;	///< 源文件中的偏移
+	target_pos	tpos;		///< 目标文件中的位置信息
+	void *	 	data;
+	uint32_t	blength:29; ///< 块长度，绝不会超过 MAX_XDELTA_BLOCK_BYTES 或者 MULTIROUND_MAX_BLOCK_SIZE
+	uint32_t	visited:1;  ///< 本对象所表示的块是否已经处理过。
+	uint32_t	stacked:1;	///< 本对象所表示的块是否已经在处理栈中。
+	uint32_t	deleted:1;	///< 本对象所表示的块是否已经删除（有循环依赖）。
+};
+
+/// \struct
+/// 描述一个不同的数据对类型
+struct diff_node
+{
+	uint64_t s_offset;	///< 源文件中的偏移，将存储在目标文件中相同的位置。
+	uint32_t blength;	///< 块长度。
+};
+
+void resolve_inplace_identical_block (std::set<equal_node *> & enode_set
+									, equal_node * node
+									, std::list<equal_node*> & ident_blocks
+									, std::list<diff_node> * diff_blocks = 0)
+{
+	if (node->stacked == TRUE) { // cyclic condition, convert it to adding bytes to target.
+		if (diff_blocks) {
+			diff_node dn;
+			dn.blength = node->blength;
+			dn.s_offset = node->s_offset;
+			diff_blocks->push_back (dn);
+		}
+		node->deleted = TRUE;
+		return;
+	}
+
+	if (node->visited == TRUE)
+		return;
+
+	node->stacked = TRUE;
+	//
+	// 如果两个块索引是相同的，就说明这个块没有经过移动。
+	// 这里的查找逻辑是这样的：
+	// enode_set 已经按照其所在的目标文件的块索引经过排序了（set 的特性）：
+	// 现在某个目标块在可以移动前，需要以 s_offset 为目标位置查找，是否有某个块在这个块影响之下，
+	// 因此要将这个块先处理。如果覆盖的块，有一边是自己，则不需要处理这一边。
+	//
+	uint64_t left_index = node->s_offset / node->blength, 
+			right_index = (node->s_offset - 1 + node->blength) / node->blength;
+
+	equal_node enode;
+	enode = *node;
+	enode.tpos.index = (uint32_t)left_index;
+
+	typedef std::set<equal_node*>::iterator it_t;
+	// to forge a node, only t_index member will be used.
+	it_t pos = enode_set.find (&enode);
+	//
+	// to check if this equal node is overlap with one and/or its 
+	// directly following block on target.先处理左边
+	//
+	if (pos != enode_set.end () && *pos != node)
+		xdelta::resolve_inplace_identical_block (enode_set, *pos, ident_blocks, diff_blocks);
+
+	//
+	// 再处理右边。
+	//
+	enode.tpos.index = (uint32_t)right_index;
+	pos = enode_set.find (&enode);
+	if (pos != enode_set.end () && *pos != node)
+		resolve_inplace_identical_block (enode_set, *pos, ident_blocks, diff_blocks);
+
+	// this node's all dependencies have been resolved.
+	// so push the node to the back, and when return from this call,
+	// blocks depend on this node will be pushed to the back just behind
+	// its dependent block.
+	if (node->deleted == FALSE)
+		ident_blocks.push_back (node);
+	
+	node->stacked = FALSE;
+	node->visited = TRUE;
+	return;
+}
 
 static void create_pipe (PIPE_HANDLE * rd, PIPE_HANDLE * wr)
 {
@@ -470,7 +551,7 @@ void xdelta_resolve_inplace (xit_t ** head)
 				, std::inserter (enode_set, enode_set.end ()));
 					
 	for (it_t pos = ident_blocks.begin (); pos != ident_blocks.end (); ++pos)
-		resolve_inplace_identical_block (enode_set, *pos, result_ident_blocks);
+		xdelta::resolve_inplace_identical_block (enode_set, *pos, result_ident_blocks);
 		
 	for (it_t pos = ident_blocks.begin (); pos != ident_blocks.end (); ++pos) {
 		 // 已经存在 diff_blocks 中，即将这些处理过块放在链表头。

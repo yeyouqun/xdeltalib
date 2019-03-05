@@ -16,10 +16,6 @@
 */
 #ifndef __XDELTA_LIB_H__
 #define __XDELTA_LIB_H__
-#ifdef _WIN32
-	#include <stdint.h>
-#else
-#endif
 /// @file
 /// @mainpage xdeltalib 库使用指南
 ///
@@ -281,9 +277,15 @@ inline int32_t multiround_base ()
 }
 
 class DLL_EXPORT hash_table  {
+#ifdef _WIN32
 	hash_map<uint32_t, std::set<slow_hash> * > hash_table_;
 	typedef hash_map<uint32_t, std::set<slow_hash> *>::const_iterator chit_t;
 	typedef hash_map<uint32_t, std::set<slow_hash> *>::iterator hash_iter;
+#else
+	__gnu_cxx::hash_map<uint32_t, std::set<slow_hash> * > hash_table_;
+	typedef __gnu_cxx::hash_map<uint32_t, std::set<slow_hash> *>::const_iterator chit_t;
+	typedef __gnu_cxx::hash_map<uint32_t, std::set<slow_hash> *>::iterator hash_iter;
+#endif
 public:
 	hash_table () {}
 	virtual ~hash_table ();
@@ -411,8 +413,7 @@ public:
 	{
 		RollsumInit ((&sum_));
 #ifdef _WIN32
-		std::for_each (buf1, buf1 + len
-			, std::bind1st (std::mem_fun1 (&rolling_hasher::_eat), this));
+		std::for_each (buf1, buf1 + len, std::bind1st (std::mem_fun (&rolling_hasher::_eat), this));
 #else
 		std::for_each (buf1, buf1 + len
 			, std::bind1st (__gnu_cxx::mem_fun1 (&rolling_hasher::_eat), this));
@@ -502,7 +503,7 @@ inline bool is_no_file_error (const int32_t error_no)
 /// 版本宏，在通信时，通过 BT_CLIENT_BLOCK 最开始的两个字节，版本策略
 /// 是向后兼容，并且每次更新增加 1。在可正常接收信息时，向客户端发送版本信息，以及错误信息。
 #ifdef _WIN32
-	#define XDELTA_VERSION (INT16_C(1))
+	#define XDELTA_VERSION (1)
 #else
 	#define XDELTA_VERSION ((short)1)
 #endif

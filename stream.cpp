@@ -42,19 +42,13 @@
 
 #include "mytypes.h"
 #include "buffer.h"
-#include "simple_socket.h"
-#include "passive_socket.h"
 #include "platform.h"
 #include "rw.h"
 #include "rollsum.h"
 #include "md4.h"
 #include "xdeltalib.h"
 #include "tinythread.h"
-#include "reconstruct.h"
-#include "multiround.h"
-#include "xdelta_server.h"
 #include "stream.h"
-#include "inplace.h"
 
 namespace xdelta {
 

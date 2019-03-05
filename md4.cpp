@@ -48,6 +48,7 @@
 #ifdef _WIN32
 	#include <windows.h>
 	#include <functional>
+	#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 	#include <hash_map>
 	#include <errno.h>
 #else

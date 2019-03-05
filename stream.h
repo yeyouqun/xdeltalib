@@ -57,36 +57,36 @@ public:
 	~tcp_hasher_stream () {}
 };
 
-/// \class
-/// Tcp 传送多轮 hasher 数据的类型。
-class multiround_tcp_stream : public tcp_hasher_stream
-{
-	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len);
-	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize);
-	virtual void set_holes (std::set<hole_t> * holeset);
-	virtual bool end_first_round (const uchar_t file_hash[DIGEST_BYTES]);
-	virtual void next_round (const int32_t blk_len);
-	virtual void end_one_round ();
-private:
-	bool _end_first_round;
-	bool _receive_equal_node ();
-	multiround_reconstructor reconst_;
-public:
-	multiround_tcp_stream (CActiveSocket & client
-					, file_operator & fop
-					, xdelta_observer & observer);
-	~multiround_tcp_stream () {}
-};
-
-/// \var MULTI_ROUND_FLAG
-/// 多轮标志字节常量
-extern const uint16_t MULTI_ROUND_FLAG;
-/// \var SINGLE_ROUND_FLAG
-/// 单轮标志字节常量
-extern const uint16_t SINGLE_ROUND_FLAG;
-/// \var INPLACE_FLAG
-/// 就地构造标志字节常量
-extern const uint16_t INPLACE_FLAG;
+///// \class
+///// Tcp 传送多轮 hasher 数据的类型。
+//class multiround_tcp_stream : public tcp_hasher_stream
+//{
+//	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len);
+//	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize);
+//	virtual void set_holes (std::set<hole_t> * holeset);
+//	virtual bool end_first_round (const uchar_t file_hash[DIGEST_BYTES]);
+//	virtual void next_round (const int32_t blk_len);
+//	virtual void end_one_round ();
+//private:
+//	bool _end_first_round;
+//	bool _receive_equal_node ();
+//	multiround_reconstructor reconst_;
+//public:
+//	multiround_tcp_stream (CActiveSocket & client
+//					, file_operator & fop
+//					, xdelta_observer & observer);
+//	~multiround_tcp_stream () {}
+//};
+//
+///// \var MULTI_ROUND_FLAG
+///// 多轮标志字节常量
+//extern const uint16_t MULTI_ROUND_FLAG;
+///// \var SINGLE_ROUND_FLAG
+///// 单轮标志字节常量
+//extern const uint16_t SINGLE_ROUND_FLAG;
+///// \var INPLACE_FLAG
+///// 就地构造标志字节常量
+//extern const uint16_t INPLACE_FLAG;
 
 } // namespace xdelta
 

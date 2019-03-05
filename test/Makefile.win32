@@ -4,32 +4,23 @@
 # Needed for correctness
 # For optimization and warnings
 !IF "$(DEBUG)"=="1" 
-CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /EHsc -D_DEBUG -I..
+CXX_CFLAGS = $(CXX_CFLAGS) /W3 /wd4996 /nologo /MDd /Zi /EHsc -D_DEBUG -I.. /D__CXX_11__
 LIBFLAGS=/nologo /INCREMENTAL /DEBUG /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
 !ELSE 
-CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /EHsc -DNDEBUG -I..
+CXX_CFLAGS = $(CXX_CFLAGS) /Ox /W3 /wd4996 /nologo /MD /EHsc -DNDEBUG -I.. /D__CXX_11__
 LIBFLAGS=/nologo /INCREMENTAL /SUBSYSTEM:CONSOLE /DYNAMICBASE /NXCOMPAT
 !ENDIF
 
 
 # XXXX have a debug mode
    
-SERVER_TEST_OBJS = testserver.obj
-CLIENT_TEST_OBJS = testclient.obj
 TESTCAPI_TEST_OBJS = testcapi.obj
-SIMILARITY_OBJS = similarity.obj
-DIFF_CALLBACK = testdiffcb.obj
 
 .cpp.obj::
     cl $(CXX_CFLAGS) -c $<
     
-all: $(SERVER_TEST_OBJS)  $(CLIENT_TEST_OBJS) $(TESTCAPI_TEST_OBJS) \
-							 $(SIMILARITY_OBJS) $(DIFF_CALLBACK)
-	link $(LIBFLAGS) $(SERVER_TEST_OBJS) ../xdelta.lib /out:../server.exe /PDB:"server.pdb" 
-	link $(LIBFLAGS) $(CLIENT_TEST_OBJS) ../xdelta.lib /out:../client.exe /PDB:"client.pdb"
+all: $(TESTCAPI_TEST_OBJS) 
 	link $(LIBFLAGS) $(TESTCAPI_TEST_OBJS) ../xdelta.lib /out:../testcapi.exe /PDB:"testcapi.pdb" 
-	link $(LIBFLAGS) $(SIMILARITY_OBJS) ../xdelta.lib /out:../similarity.exe /PDB:"similarity.pdb" 
-	link $(LIBFLAGS) $(DIFF_CALLBACK) ../xdelta.lib /out:../testdiffcb.exe /PDB:"testdiffcb.pdb" 
 
 clean:
 	del *.obj

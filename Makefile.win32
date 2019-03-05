@@ -17,24 +17,13 @@ LIBFLAGS=/nologo Ws2_32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib \
             odbc32.lib odbccp32.lib  /INCREMENTAL /DYNAMICBASE /NXCOMPAT
 !ENDIF
 
-XDELTA_OBJS =  active_socket.obj \
-                inplace.obj \
-                lz4.obj \
-                lz4hc.obj \
-                md4.obj \
-                multiround.obj \
-                passive_socket.obj \
-                platform.obj \
-                reconstruct.obj \
-                rollsum.obj \
-                rw.obj \
-                simple_socket.obj \
-                stream.obj \
-                tinythread.obj \
+XDELTA_OBJS =  capi.obj \
                 xdeltalib.obj \
-                xdelta_client.obj \
-                xdelta_server.obj \
-                capi.obj \
+                tinythread.obj \
+                rollsum.obj \
+								md4.obj \
+								platform.obj \
+                rw.obj \
 
 INTDIR=.\objs
 all: share_lib test

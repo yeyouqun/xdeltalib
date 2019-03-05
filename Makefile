@@ -27,31 +27,15 @@ else
 EXTRA_CFLAGS += -O2
 endif
 
-SERVER_OBJS = ./test/testserver.o
-CLIENT_OBJS = ./test/testclient.o
 TESTCAPI_OBJS = ./test/testcapi.o
-SIMILARITY_OBJS = ./test/similarity.o
-DIFF_CALLBACK = ./test/testdiffcb.o
 
-XDELTA_OBJS =  active_socket.o \
-                inplace.o \
-                lz4.o \
-                lz4hc.o \
-                multiround.o \
-                passive_socket.o \
-                platform.o \
-                reconstruct.o \
-                rollsum.o \
-                rw.o \
-						md4.o \
-                simple_socket.o \
-                stream.o \
-                tinythread.o \
+XDELTA_OBJS =  capi.o \
                 xdeltalib.o \
-                xdelta_client.o \
-                xdelta_server.o \
-                xxhash.o \
-                capi.o \
+                tinythread.o \
+                rollsum.o \
+								md4.o \
+								platform.o \
+                rw.o \
 
 CXX      := g++
 
@@ -64,25 +48,10 @@ all: xdelta test
 xdelta: $(XDELTA_OBJS)
 	$(CXX) $(LDFLAGS) -o libxdelta.so $^
 	
-test-server:xdelta $(SERVER_OBJS)
-
-                
-test:xdelta $(CLIENT_OBJS)  $(SERVER_OBJS)  $(TESTCAPI_OBJS) $(SIMILARITY_OBJS) \
-			$(DIFF_CALLBACK)
-	$(CXX) -Wl,-rpath,. -o client $(CLIENT_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
-                
-	$(CXX) -Wl,-rpath,. -o server $(SERVER_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
-                
+test:xdelta $(TESTCAPI_OBJS) 
 	$(CXX) -Wl,-rpath,. -o testcapi $(TESTCAPI_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
                 -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
                 
-	$(CXX) -Wl,-rpath,. -o similarity $(SIMILARITY_OBJS) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)
-
-	$(CXX) -Wl,-rpath,. -o diffcb $(DIFF_CALLBACK) $(CXXFLAGS)  $(EXTRA_CFLAGS)  \
-                -Wno-deprecated -L. -lxdelta $(TEST_LD_FLAGS)                  
 clean:
 	rm -f *.o libxdelta.so* server client testcapi similarity $(SERVER_OBJS) $(CLIENT_OBJS) \
 	$(TESTCAPI_OBJS) $(SIMILARITY_OBJS) $(DIFF_CALLBACK) diffcb

@@ -24,6 +24,7 @@
 	#include <errno.h>
 	#include <io.h>
 	#include <share.h>
+	#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 	#include <hash_map>
 	#include <functional>
 #else
@@ -337,7 +338,44 @@ xdelta_hash_table::~xdelta_hash_table ()
 {
 }
 
-void split_hole (std::set<hole_t> & holeset, const hole_t & hole);
+void split_hole (std::set<hole_t> & holeset, const hole_t & hole)
+{
+	typedef std::set<hole_t>::iterator it_t;
+	hole_t findhole;
+	findhole.offset = hole.offset;
+	findhole.length = 0;
+
+	it_t pos = holeset.find (findhole);
+	if (pos != holeset.end ()) {
+		const hole_t bighole = *pos;
+		if (bighole.offset <= hole.offset && 
+			(bighole.offset + bighole.length) >= (hole.offset + hole.length)) {
+				// split to one or more hole, like this
+				// |--------------------------------------|
+				// |---------| added block |--------------|
+				holeset.erase (pos);
+				if (bighole.offset < hole.offset) {
+					hole_t newhole;
+					newhole.offset = bighole.offset;
+					newhole.length = hole.offset - bighole.offset;
+					holeset.insert (newhole);
+				}
+
+				uint64_t bigend = bighole.offset + bighole.length,
+					     holeend = hole.offset + hole.length;
+				if (bigend > holeend) {
+					hole_t newhole;
+					newhole.offset = hole.offset + hole.length;
+					newhole.length = bigend - holeend;
+					holeset.insert (newhole);
+				}
+
+				return;
+		}
+	}
+
+	BUG("hole must be exists");
+}
 
 /// \fn read_and_delta()
 /// \brief
