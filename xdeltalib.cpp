@@ -388,46 +388,6 @@ void read_and_delta (file_reader & reader
 	return;
 }
 
-void xdelta_hash_table::xdelta_it (xdelta_stream & stream)
-{
-	file_reader & reader = reader_;
-	const int f_blk_len = f_blk_len_;
-
-	char_buffer<uchar_t> buf (XDELTA_BUFFER_LEN);
-	uint64_t filsize = 0;
-	stream.start_hash_stream (reader.get_fname (), f_blk_len);
-	try {
-		reader.open_file ();
-		filsize = reader.get_file_size ();
-		if (hash_table_.empty ()) {
-			// If dest has no such file or its size  is less than
-			// one block, hash_table_ will be empty, so trans all of the file content directly.
-			uint64_t offset = 0;
-			uint32_t size;
-			while ((size = reader.read_file (buf.begin (), XDELTA_BUFFER_LEN)) > 0) {
-				stream.add_block (buf.begin (), size, offset);
-				offset += size;
-			}
-
-			goto end;
-		}
-	
-		hole_t hole;
-		hole.offset = 0;
-		hole.length = reader.get_file_size ();
-		std::set<hole_t> hole_set;
-		hole_set.insert (hole);
-		read_and_delta (reader, stream, hash_table_, hole_set, f_blk_len, false);
-	}
-	catch (xdelta_exception &e) {
-		stream.on_error (e.what (), e.get_errno ());
-	}
-
-end:
-	reader.close_file ();
-	stream.end_hash_stream (filsize);
-	return;
-}
 
 ////////////////////////////////////////////////////////////////////////////
 static uint32_t xdelta_sum_block_size (const uint64_t filesize)

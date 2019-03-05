@@ -16,45 +16,6 @@
 */
 #ifndef __XDELTA_LIB_H__
 #define __XDELTA_LIB_H__
-/// @file
-/// @mainpage xdeltalib 库使用指南
-///
-/// @section intro_sec 介绍
-/// xdeltalib 库是用 C++ 实现的差异数据提取库，其核心就是 Rsync 的算法。
-/// Xdeltalib 库的特点有如下几个：
-/// \li 完全用 C++ 写成，可以集中到 C++ 项目中，并充分利用 C++ 的优势。
-/// \li 支持多平台，在 Windows 与 Linux 中经过严格测试，也可以整合到 Unix 平台中。
-/// \li 代码经过特别优化，差异算法及数据结构经过精心设计，增加了执行性能。
-/// \li 支持 in-place 同步算法，可以应用到各种平台中，包括移动平台、服务器环境以及 PC 环境。
-/// \li 支持可配置的 multi-round （多轮）同步算法，提高同步效率，同时提高了集成平台的可配置性。
-/// \li 集成网络数据传输功能，减少了用户整合的工作量，加快整合进度。
-/// \li 支持可配置的或者默认的线程数，充分利用多核优势，提高了执行性能。
-/// \li 采用消费者与生产者模型提交与处理任务，充分利用并发优势。
-/// \li 一库多用途，即可用于传统的文件数据同步，也可用于其他差异算法可应用的场景。
-/// \li 良好的平台适应性。通过特别的设计，提供在各种存储平台的应用，如单设备环境，云存储环境，以及分存式存储环境。
-/// \li 完备的文档、支持与快速响应。
-///
-/// @section port_sec 可移植
-/// xdeltalib 库具有良好的可移植性，可能使用于 Windows 平台，Linux 平台，在这两个平台上进行了
-/// 全面的测试，只要做较少的工作，即可移植到 Unix 平台。
-///
-/// @section class_sec 核心类说明
-/// xdeltalib.h 文件提供了 xdeltalib 库的核心组件的基础声明，包括
-/// \li hasher_stream       用于流化文件 Hash 值的基类。
-/// \li xdelta_stream       用于流化根据 Hash 表生成的差异数据的基类，用户可以实现自己的基类，来
-///                         来实现使用差异数据的功能。
-/// \li hash_table          用于记录 Hash 表，并且利于调整查询跟插入。
-/// \li multiround_hash_table 用于记录 Hash 表，并且利于调整查询跟插入，但只用于多轮 Hash 中。
-/// \li xdelta_hash_table   用于实现差异数据的计算，并通过 xdelta_stream 流化输出。
-/// \li rolling_hasher      实现 Rolling Hash 的类。
-///
-/// @section misc_sec 其他说明
-/// \li 传统的快速文件数据同步，包括本地或者远程。
-/// \li 基于源端重复数据删除。
-/// \li 各种云存储或者网盘产品，由于数据的同步与去重。
-/// \li 以差异数据的方式保存文件多版本。
-/// \li等等。
-
 
 /// \namespace xdelta
 /// \brief 最外层名字空间 xdelta
@@ -137,23 +98,7 @@ public:
 	virtual void add_block (const uchar_t * data
 							, const uint32_t blk_len
 							, const uint64_t s_offset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示下一轮 Hash 流开始。
-	/// \param[in] blk_len		下一轮 Hash 的块长度。
-	/// \return 没有返回
-	virtual void next_round (const int32_t blk_len) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 本接口仅在多轮计算中，如果第一轮所计算的 Hash 相同，不再需要进行后续的多轮计算时
-	/// 调用，在其他的情况下调用都是错误的。其主要是向服务器发送停止后续多轮计算的信息。
-	virtual void stop_first_round () { assert (false); }
-	/// \brief
-	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
-	/// \return 没有返回
-	virtual void end_one_round () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示结束一个文件的 Hash 流的处理。
-	/// \param[in] filsize		源文件的大小。
-	/// \return 没有返回
+
 	virtual void end_hash_stream (const uint64_t filsize) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
 	/// 指示处理过程中的错误。
@@ -161,11 +106,6 @@ public:
 	/// \param[in] errorno		错误码。
 	/// \return 没有返回
 	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 在多轮 Hash 中设置源文件洞对象。
-	/// \param[in] holeset		文件洞集合对像。
-	/// \return 没有返回
-	virtual void set_holes (std::set<hole_t> * holeset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 class DLL_EXPORT hasher_stream 
@@ -192,31 +132,11 @@ public:
 	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize) 
 	{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 	/// \brief
-	/// 指示结束多轮 Hash 中第一轮，其相应结果相当于单轮 Hash 中的 end_hash_stream。
-	/// \param[in] file_hash		整个文件的 MD4 Hash 值。
-	/// \return 如果源文件中判断需要继续下一轮，则返回真，否则返回假。
-	virtual bool end_first_round (const uchar_t file_hash[DIGEST_BYTES])
-	 { THROW_XDELTA_EXCEPTION ("Not implemented.!"); return false; }
-	/// \brief
-	/// 指示下一轮 Hash 流开始。
-	/// \param[in] blk_len		下一轮 Hash 的块长度。
-	/// \return 没有返回
-	virtual void next_round (const int32_t blk_len) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示结束一轮 Hash，只在多轮 Hash 中调用
-	/// \return 没有返回
-	virtual void end_one_round () { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
 	/// 指示处理过程中的错误。
 	/// \param[in] errmsg		错误信息。
 	/// \param[in] errorno		错误码。
 	/// \return 没有返回
 	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 在多轮 Hash 中设置目标文件洞对象。
-	/// \param[in] holeset		文件洞集合对像。
-	/// \return 没有返回
-	virtual void set_holes (std::set<hole_t> * holeset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 /// 在单轮 Hash 中的最小块长度
@@ -324,31 +244,6 @@ public:
 	virtual void hash_it (file_reader & reader, hasher_stream & stream) const;
 };
 
-
-/// \class
-/// 此类用于根据接收到的 Hash 表将输入的文件对象执行差异数据提出，并通过 xdelta_stream
-/// 对象输出。
-class DLL_EXPORT xdelta_hash_table {
-protected:
-	const hash_table &	hash_table_;
-	file_reader &		reader_;
-	const int			f_blk_len_;
-public:
-	/// \brief
-	/// 生成 Hash 差异数据计算对象。
-	/// \param[in] table	    目标比较文件的 Hash 表。
-	/// \param[in] reader	    文件读取对像。
-	/// \param[in] f_blk_len    块长度。
-	xdelta_hash_table (const hash_table & table
-						, file_reader & reader
-						, const int f_blk_len);
-	~xdelta_hash_table ();
-	/// \brief
-	/// 流化差异数据并输出。
-	/// \param[in] stream	流化对象。
-	/// \return	No return
-	void xdelta_it (xdelta_stream & stream);
-};
 
 /// \fn uint32_t DLL_EXPORT get_xdelta_block_size (const uint64_t filesize)
 /// \brief 根据文件大小计算相应的 Hash 块长度。
