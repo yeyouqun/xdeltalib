@@ -181,40 +181,20 @@ void hash_table::hash_it (file_reader & reader, hasher_stream & stream) const
 	rs_mdfour_t ctx;
 	rs_mdfour_begin(&ctx);
 	uint64_t filsize = 0;
-	try {
 		int32_t f_blk_len = 0;
-		if (reader.exist_file ()) {
-			try {
-				reader.open_file (); // sometimes this will throw.
-				filsize = reader.get_file_size ();
-				f_blk_len = get_xdelta_block_size (filsize);
-			}
-			catch (...) {
-				stream.start_hash_stream (reader.get_fname (), 0);
-				throw;
-			}
-			stream.start_hash_stream (reader.get_fname (), f_blk_len);
-		}
-		else {
-			std::string mesg = fmt_string ("File %s not exists."
-				, reader.get_fname ().c_str ());
-			stream.start_hash_stream (reader.get_fname (), 0);
-			stream.on_error (mesg, ENOENT);
-			goto end;
-		}
-		read_and_hash (reader, stream, filsize, f_blk_len, 0, &ctx);
-	}
-	catch (xdelta_exception &e) {
-		stream.on_error (e.what (), e.get_errno ());
-	}
+		if (!reader.exist_file ())
+			return;
 
-end:
+	reader.open_file (); // sometimes this will throw.
+	filsize = reader.get_file_size ();
+	f_blk_len = get_xdelta_block_size (filsize);
+	read_and_hash (reader, stream, filsize, f_blk_len, 0, &ctx);
+
 	uchar_t file_hash[DIGEST_BYTES];
 	memset (file_hash, 0, sizeof (file_hash));
 	rs_mdfour_result (&ctx, file_hash);
 
 	reader.close_file ();
-	stream.end_hash_stream (file_hash, filsize);
 	return;
 }
 

@@ -74,13 +74,6 @@ class DLL_EXPORT xdelta_stream
 public:
 	virtual ~xdelta_stream () {} 
 	/// \brief
-	/// 指示开始处理文件的 Hash 流
-	/// \param[in] fname	文件名，带相对路径
-	/// \param[in] blk_len	处理文件的块长度
-	/// \return 没有返回
-	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len)
-		{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
 	/// 输出一个相同块的块信息记录
 	/// \param[in] tpos		块在目标文件中的位置信息。
 	/// \param[in] blk_len	块长度。
@@ -99,13 +92,6 @@ public:
 							, const uint32_t blk_len
 							, const uint64_t s_offset) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 
-	virtual void end_hash_stream (const uint64_t filsize) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示处理过程中的错误。
-	/// \param[in] errmsg		错误信息。
-	/// \param[in] errorno		错误码。
-	/// \return 没有返回
-	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 class DLL_EXPORT hasher_stream 
@@ -113,30 +99,11 @@ class DLL_EXPORT hasher_stream
 public:
 	virtual ~hasher_stream () {}
 	/// \brief
-	/// 指示开始处理文件的 Hash 流
-	/// \param[in] fname	文件名，带相对路径
-	/// \param[in] blk_len	处理文件的块长度
-	/// \return 没有返回
-	virtual void start_hash_stream (const std::string & fname, const int32_t blk_len)
-		{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
 	/// 输出一个块数据的快、慢 Hash 值。
 	/// \param[in] fhash		快 Hash 值。
 	/// \param[in] shash		慢 Hash 值。
 	virtual void add_block (const uint32_t fhash, const slow_hash & shash)
 	 { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示结束一个文件的 Hash 流的处理。
-	/// \param[in] filsize		源文件的大小。
-	/// \return 没有返回
-	virtual void end_hash_stream (const uchar_t file_hash[DIGEST_BYTES], const uint64_t filsize) 
-	{ THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
-	/// \brief
-	/// 指示处理过程中的错误。
-	/// \param[in] errmsg		错误信息。
-	/// \param[in] errorno		错误码。
-	/// \return 没有返回
-	virtual void on_error (const std::string & errmsg, const int errorno) { THROW_XDELTA_EXCEPTION ("Not implemented.!"); }
 };
 
 /// 在单轮 Hash 中的最小块长度
