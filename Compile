@@ -2,6 +2,7 @@ xdeltalib 当前只在如下平台下编译通过：
 
     * VS 2008
     * VS 2010
+    * VS 2015
     * Redhat Enterprise Server Edition （GCC 4.6.2）
     * OpenIndiana （GCC 4.4.4）
     
@@ -21,13 +22,9 @@ xdeltalib 当前只在如下平台下编译通过：
 当没有指定编译目标时，会将库，test-client,test-server 三个目标同时生成，你可以单独指定，如：
 
     * make xdelta
-    * make test-client
-    * make test-server
     
 在 OpenIndiana 平台下时，请使用 gmake 来管理项目生成，如：
 
     * gmake xdelta
-    * gmake test-client
-    * gmake test-server
     
     
